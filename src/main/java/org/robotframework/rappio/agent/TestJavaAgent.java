@@ -8,11 +8,12 @@ import org.robotframework.swing.SwingLibrary;
 public class TestJavaAgent {
 
 	  public static void premain(String agentArgument, Instrumentation instrumentation){
-		  System.out.println("Java Agent!");
+		  System.out.println("Java Agent! ");
 		  RemoteServer.configureLogging();
 		  RemoteServer server = new RemoteServer();
-		  server.putLibrary("/", new SwingLibrary());
+		  server.putLibrary("/RPC2", new SwingLibrary());
 		  server.setPort(8181);
+		  server.setAllowStop(true);
 		  try {
 			server.start();
 		} catch (Exception e) {
