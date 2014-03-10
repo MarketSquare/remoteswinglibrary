@@ -27,4 +27,27 @@
       <version>3.0</version>
     </dependency>
   </dependencies>
+  
+  <build>
+    <plugins>
+		<plugin>
+		  <groupId>org.apache.maven.plugins</groupId>
+          <version>2.2</version>
+		  <artifactId>maven-assembly-plugin</artifactId>
+		  <configuration>
+		  <descriptorRefs>jar-with-dependencies</descriptorRefs>
+		    <archive>
+		       <index>true</index>
+               <manifest>
+                    <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                    <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+               </manifest>
+		      <manifestEntries>
+		        <Premain-Class>org.robotframework.rappio.agent.TestJavaAgent</Premain-Class>
+		      </manifestEntries>
+		    </archive>
+		  </configuration>
+		</plugin>
+    </plugins>
+  </build>  
 </project>
