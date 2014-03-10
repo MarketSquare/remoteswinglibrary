@@ -3,4 +3,4 @@ Library    Remote   localhost:8181
 
 *** Test Cases ***
 Something
-    No Operation
+    List Components In Context

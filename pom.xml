@@ -26,6 +26,11 @@
       <artifactId>jrobotremoteserver</artifactId>
       <version>3.0</version>
     </dependency>
+    <dependency>
+    <groupId>org.robotframework</groupId>
+    <artifactId>swinglibrary</artifactId>
+    <version>1.9.1</version>
+    </dependency>
   </dependencies>
   
   <build>
