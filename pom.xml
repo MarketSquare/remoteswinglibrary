@@ -29,13 +29,18 @@
   </dependencies>
   
   <build>
-    <plugins>
+<pluginManagement>
+<plugins><plugin>
+		  <groupId>org.apache.maven.plugins</groupId>
+          <version>2.4</version>
+		  <artifactId>maven-assembly-plugin</artifactId></plugin></plugins>
+</pluginManagement>
+     <plugins>
 		<plugin>
 		  <groupId>org.apache.maven.plugins</groupId>
-          <version>2.2</version>
-		  <artifactId>maven-assembly-plugin</artifactId>
+          <artifactId>maven-assembly-plugin</artifactId>
 		  <configuration>
-		  <descriptorRefs>jar-with-dependencies</descriptorRefs>
+		  <descriptorRefs><descriptorRef>jar-with-dependencies</descriptorRef></descriptorRefs>
 		    <archive>
 		       <index>true</index>
                <manifest>
