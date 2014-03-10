@@ -1,0 +1,6 @@
+*** Settings ***
+Library    Remote   localhost:8181
+
+*** Test Cases ***
+Something
+    No Operation
