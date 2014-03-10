@@ -21,5 +21,10 @@
       <version>3.8.1</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.github.ombre42</groupId>
+      <artifactId>jrobotremoteserver</artifactId>
+      <version>3.0</version>
+    </dependency>
   </dependencies>
 </project>
