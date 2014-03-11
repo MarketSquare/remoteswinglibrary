@@ -1,0 +1,5 @@
+// Do what you will. Totally permissive policy file.
+grant {
+permission java.security.AllPermission;
+};
+

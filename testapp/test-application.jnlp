@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp spec="1.0+"
+      codebase="http://localhost:9876/"
+      href="test-application.jnlp">
+   <information>
+      <title>RemoteApplications Demo</title>
+      <vendor>http://robotframework.org</vendor>
+      <description>RemoteApplications Demo</description>
+      <homepage href="http://code.google.com/p/robotframework-remoteapplications/"/>
+      <offline-allowed/>
+   </information>
+    <security><all-permissions/></security>
+    <resources>
+        <jar href="test-application.jar"/>
+        <j2se version="1.4+" href="http://java.sun.com/products/autodl/j2se"/>
+    </resources>
+    <application-desc main-class="org.robotframework.example.testapp.TestApplication"/>
+</jnlp>
