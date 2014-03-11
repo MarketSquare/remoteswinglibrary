@@ -3,4 +3,5 @@ Library    Remote   localhost:8181
 
 *** Test Cases ***
 Something
-    Stop Remote Server
+    Select Main Window
+    List Components In Context
