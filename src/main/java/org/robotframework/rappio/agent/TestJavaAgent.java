@@ -16,7 +16,6 @@ public class TestJavaAgent {
 		server.putLibrary("/RPC2", new SwingLibrary());
 		server.setPort(8181);
 		server.setAllowStop(true);
-		final Instrumentation inst = instrumentation;
 		try {
 			server.start();
 		} catch (Exception e) {
