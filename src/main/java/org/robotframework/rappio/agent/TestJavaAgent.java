@@ -1,11 +1,11 @@
 package org.robotframework.rappio.agent;
 
-import java.awt.Window;
 import java.lang.instrument.Instrumentation;
 import java.lang.management.ManagementFactory;
 
 import org.robotframework.remoteserver.RemoteServer;
 import org.robotframework.swing.SwingLibrary;
+import sun.awt.AppContext;
 
 public class TestJavaAgent {
 
@@ -21,7 +21,7 @@ public class TestJavaAgent {
                 } catch (Exception e) {
                     System.out.println("TODODOODODODODOODODODODO!!!");
                 }
-                Window.getWindows();
+                AppContext.getAppContext();
 	}
 
 }
