@@ -24,7 +24,7 @@ public class TestJavaAgent {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		int i = Frame.getFrames().length;
+                Frame.getFrames();
 	}
 
 }
