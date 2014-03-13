@@ -3,16 +3,11 @@ package org.robotframework.rappio.agent;
 import java.awt.Frame;
 import java.lang.instrument.Instrumentation;
 import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadInfo;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import org.robotframework.remoteserver.RemoteServer;
 import org.robotframework.swing.SwingLibrary;
 
 public class TestJavaAgent {
-	static ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
 
 	public static void premain(String agentArgument, Instrumentation instrumentation){
 		System.out.println("Java Agent! "+ManagementFactory.getRuntimeMXBean().getVmVersion());
