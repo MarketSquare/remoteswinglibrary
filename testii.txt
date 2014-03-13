@@ -4,4 +4,5 @@ Library    Remote   localhost:8181
 *** Test Cases ***
 Something
     Select Main Window
+    ${i}=     Get Selected Window Title
     List Components In Context
