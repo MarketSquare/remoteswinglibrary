@@ -26,10 +26,6 @@ public class TestJavaAgent {
 		}
 		
                 System.out.println("Frames: "+Frame.getFrames().length);
-                for (Frame frame: Frame.getFrames()) {
-                        System.out.println(""+frame.getTitle());
-                }
-
 	}
 
 }
