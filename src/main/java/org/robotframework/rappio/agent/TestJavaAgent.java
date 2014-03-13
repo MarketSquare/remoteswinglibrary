@@ -35,10 +35,6 @@ public class TestJavaAgent {
                         System.out.println(""+frame.getTitle());
                 }
 
-                for(long id: ManagementFactory.getThreadMXBean().getAllThreadIds()){
-                        ThreadInfo ti = ManagementFactory.getThreadMXBean().getThreadInfo(id);
-                        System.out.println("Thread: "+ti.getThreadName());
-                }
 	}
 
 }
