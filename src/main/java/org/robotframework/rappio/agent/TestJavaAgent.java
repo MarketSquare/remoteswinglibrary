@@ -30,20 +30,15 @@ public class TestJavaAgent {
 			e.printStackTrace();
 		}
 		
-		Runnable helloRunnable = new Runnable() {
-			public void run(){
-				System.out.println("Frames: "+Frame.getFrames().length);
-				for (Frame frame: Frame.getFrames()) {
-					System.out.println(""+frame.getTitle());
-				}
+                System.out.println("Frames: "+Frame.getFrames().length);
+                for (Frame frame: Frame.getFrames()) {
+                        System.out.println(""+frame.getTitle());
+                }
 
-				for(long id: ManagementFactory.getThreadMXBean().getAllThreadIds()){
-					ThreadInfo ti = ManagementFactory.getThreadMXBean().getThreadInfo(id);
-					System.out.println("Thread: "+ti.getThreadName());
-				}
-			}
-		};
-		executor.scheduleAtFixedRate(helloRunnable, 0, 5, TimeUnit.SECONDS);
+                for(long id: ManagementFactory.getThreadMXBean().getAllThreadIds()){
+                        ThreadInfo ti = ManagementFactory.getThreadMXBean().getThreadInfo(id);
+                        System.out.println("Thread: "+ti.getThreadName());
+                }
 	}
 
 }
