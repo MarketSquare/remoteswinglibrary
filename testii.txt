@@ -1,8 +1,10 @@
 *** Settings ***
-Library    Remote   localhost:8181
+Resource   Rappio.txt
 
 *** Test Cases ***
 Something
-    Select Main Window
-    ${i}=     Get Selected Window Title
-    List Components In Context
+    Start Application      jarri    java -javaagent:robotframework-rappio-1.0-SNAPSHOT-jar-with-dependencies.jar -jar faren.jar
+    jarri.Select Main Window
+    ${i}=     jarri.Get Selected Window Title
+    jarri.List Components In Context
+    Stop Application       jarri
