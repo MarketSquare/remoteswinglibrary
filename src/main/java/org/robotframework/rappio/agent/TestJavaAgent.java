@@ -10,11 +10,12 @@ import sun.awt.AppContext;
 public class TestJavaAgent {
 
 	public static void premain(String agentArgument, Instrumentation instrumentation){
+                int port = Integer.parseInt(agentArgument);
                 System.out.println("Java Agent! "+ManagementFactory.getRuntimeMXBean().getVmVersion());
                 RemoteServer.configureLogging();
                 RemoteServer server = new RemoteServer();
                 server.putLibrary("/RPC2", new SwingLibrary());
-                server.setPort(8181);
+                server.setPort(port);
                 server.setAllowStop(true);
                 try {
                     server.start();
