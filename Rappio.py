@@ -106,7 +106,7 @@ class Rappio(object):
 
     def get_keyword_names(self):
         if self.current:
-            return Rappio.KEYWORDS + self.current.get_keyword_names()
+            return Rappio.KEYWORDS + [kw for kw in self.current.get_keyword_names() if kw != 'startApplication']
         return Rappio.KEYWORDS
 
     def __getattr__(self, name):
