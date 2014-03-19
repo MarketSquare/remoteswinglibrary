@@ -17,7 +17,7 @@ class _RobotImporterWrapper(object):
         key = (name, lib.positional_args, lib.named_args)
         self._remove_library(key)
 
-    def _remove_librarr(self, key):
+    def _remove_library(self, key):
         raise NotImplementedError()
 
 
@@ -40,15 +40,11 @@ class OldRobotImporterWrapper(_RobotImporterWrapper):
 class RobotLibraryImporter(object):
     """Class for manipulating Robot Framework library imports during runtime"""
 
-    def re_import_library(self, name, args):
-        """Re-imports library with given `name` and `args`.
-
-        First ensures that the library can be re-imported by going to
-        Robot internals and removing the library from cache.
-        """
+    def re_import_rappio(self):
+        name = 'Rappio'
         self._remove_lib_from_current_namespace(name)
-        self._import_wrapper().remove_library(name, args)
-        BuiltIn().import_library(name, *args)
+        self._import_wrapper().remove_library(name, [])
+        BuiltIn().import_library(name)
 
     def _import_wrapper(self):
         if hasattr(IMPORTER, '_library_cache'):
@@ -93,11 +89,11 @@ class Rappio(object):
         Rappio.CURRENT = alias
         Rappio.PORT += 1
         self.set_env()
-        self.ROBOT_NAMESPACE_BRIDGE.re_import_library('Rappio', [])
+        self.ROBOT_NAMESPACE_BRIDGE.re_import_rappio()
 
     def switch_to_application(self, alias):
         Rappio.CURRENT = alias
-        self.ROBOT_NAMESPACE_BRIDGE.re_import_library('Rappio', [])
+        self.ROBOT_NAMESPACE_BRIDGE.re_import_rappio()
 
     def stop_application(self, alias):
         self.PROCESS.terminate_process(alias)
