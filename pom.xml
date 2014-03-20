@@ -16,14 +16,9 @@
 
   <dependencies>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>3.8.1</version>
-    </dependency>
-    <dependency>
-      <groupId>com.github.ombre42</groupId>
-      <artifactId>jrobotremoteserver</artifactId>
-      <version>3.0</version>
+    <groupId>com.github.ombre42</groupId>
+    <artifactId>jrobotremoteserver</artifactId>
+    <version>3.0</version>
     </dependency>
     <dependency>
     <groupId>org.robotframework</groupId>
@@ -33,30 +28,33 @@
   </dependencies>
   
   <build>
-<pluginManagement>
-<plugins><plugin>
-		  <groupId>org.apache.maven.plugins</groupId>
-          <version>2.4</version>
-		  <artifactId>maven-assembly-plugin</artifactId></plugin></plugins>
-</pluginManagement>
-     <plugins>
-		<plugin>
-		  <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-assembly-plugin</artifactId>
-		  <configuration>
-		  <descriptorRefs><descriptorRef>jar-with-dependencies</descriptorRef></descriptorRefs>
-		    <archive>
-		       <index>true</index>
-               <manifest>
-                    <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                    <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-               </manifest>
-		      <manifestEntries>
-		        <Premain-Class>org.robotframework.rappio.agent.TestJavaAgent</Premain-Class>
-		      </manifestEntries>
-		    </archive>
-		  </configuration>
-		</plugin>
+    <pluginManagement>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <version>2.4</version>
+            <artifactId>maven-assembly-plugin</artifactId>
+        </plugin>
+    </plugins>
+    </pluginManagement>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <configuration>
+            <descriptorRefs><descriptorRef>jar-with-dependencies</descriptorRef></descriptorRefs>
+            <archive>
+            <index>true</index>
+            <manifest>
+            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+            </manifest>
+            <manifestEntries>
+            <Premain-Class>org.robotframework.rappio.agent.TestJavaAgent</Premain-Class>
+            </manifestEntries>
+            </archive>
+            </configuration>
+        </plugin>
     </plugins>
   </build>  
 </project>
