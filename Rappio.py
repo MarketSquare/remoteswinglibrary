@@ -66,6 +66,7 @@ class Rappio(object):
     CURRENT = None
     PROCESS = Process()
     ROBOT_NAMESPACE_BRIDGE = RobotLibraryImporter()
+    TIMEOUT = 60
 
     def __init__(self):
         self.set_env()
@@ -84,7 +85,8 @@ class Rappio(object):
         self.PROCESS.start_process(*command, alias=alias, shell=True)
         self.application_started(alias)
 
-    def application_started(self, alias):
+    def application_started(self, alias, timeout):
+        self.TIMEOUT = int(timeout)
         self.REMOTES[alias] = Remote('localhost:%s' % Rappio.PORT)
         Rappio.CURRENT = alias
         Rappio.PORT += 1
@@ -102,7 +104,8 @@ class Rappio(object):
 
     def get_keyword_names(self):
         if self.current:
-            return Rappio.KEYWORDS + [kw for kw in self.current.get_keyword_names() if kw != 'startApplication']
+            return Rappio.KEYWORDS + [kw for kw in self.current.get_keyword_names(attempts=Rappio.TIMEOUT)
+                                      if kw != 'startApplication']
         return Rappio.KEYWORDS
 
     def __getattr__(self, name):
