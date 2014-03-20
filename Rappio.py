@@ -81,9 +81,9 @@ class Rappio(object):
         os.environ['JAVA_TOOL_OPTIONS'] = \
             '-javaagent:robotframework-rappio-1.0-SNAPSHOT-jar-with-dependencies.jar=%s' % Rappio.PORT
 
-    def start_application(self, alias, *command):
-        self.PROCESS.start_process(*command, alias=alias, shell=True)
-        self.application_started(alias)
+    def start_application(self, alias, command, timeout=60):
+        self.PROCESS.start_process(command, alias=alias, shell=True)
+        self.application_started(alias, timeout=timeout)
 
     def application_started(self, alias, timeout=60):
         self.TIMEOUT = int(timeout)
