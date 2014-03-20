@@ -85,7 +85,7 @@ class Rappio(object):
         self.PROCESS.start_process(*command, alias=alias, shell=True)
         self.application_started(alias)
 
-    def application_started(self, alias, timeout):
+    def application_started(self, alias, timeout=60):
         self.TIMEOUT = int(timeout)
         self.REMOTES[alias] = Remote('localhost:%s' % Rappio.PORT)
         Rappio.CURRENT = alias
