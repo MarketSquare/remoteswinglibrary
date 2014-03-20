@@ -2,6 +2,13 @@ package org.robotframework.rappio.agent;
 
 import java.lang.instrument.Instrumentation;
 import java.lang.management.ManagementFactory;
+import java.util.Properties;
+import java.util.logging.LogManager;
+import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.varia.NullAppender;
 import org.robotframework.rappio.remote.DaemonRemoteServer;
 
 import org.robotframework.remoteserver.RemoteServer;
@@ -12,8 +19,17 @@ public class TestJavaAgent {
 
 	public static void premain(String agentArgument, Instrumentation instrumentation){
                 int port = Integer.parseInt(agentArgument);
-                System.out.println("Java Agent! "+ManagementFactory.getRuntimeMXBean().getVmVersion());
-                RemoteServer.configureLogging();
+                Logger root = Logger.getRootLogger();
+                root.removeAllAppenders();
+                BasicConfigurator.configure();
+                root.setLevel(Level.OFF);
+                root.addAppender(new NullAppender());
+                LogFactory.releaseAll();
+                LogFactory.getFactory().setAttribute("org.apache.commons.logging.Log",
+                        "org.apache.commons.logging.impl.Log4JLogger");
+                Properties p = new Properties();
+                p.setProperty("org.eclipse.jetty.LEVEL", "WARN");
+                org.eclipse.jetty.util.log.StdErrLog.setProperties(p);
                 RemoteServer server = new DaemonRemoteServer();
                 server.putLibrary("/RPC2", new SwingLibrary());
                 server.setPort(port);
