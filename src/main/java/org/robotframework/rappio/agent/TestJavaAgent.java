@@ -3,18 +3,18 @@ package org.robotframework.rappio.agent;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.instrument.Instrumentation;
-import java.lang.management.ManagementFactory;
 import java.util.Properties;
-import java.util.logging.LogManager;
+
 import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.varia.NullAppender;
+import org.apache.xmlrpc.webserver.XmlRpcServletServer;
 import org.robotframework.rappio.remote.DaemonRemoteServer;
-
 import org.robotframework.remoteserver.RemoteServer;
 import org.robotframework.swing.SwingLibrary;
+
 import sun.awt.AppContext;
 
 public class TestJavaAgent {

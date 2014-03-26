@@ -3,8 +3,13 @@ Library   Rappio.py
 
 *** Test Cases ***
 Something
-    Start Application      jarri    java -javaagent:robotframework-rappio-1.0-SNAPSHOT-jar-with-dependencies.jar -jar faren.jar
-    jarri.Select Main Window
-    ${i}=     jarri.Get Selected Window Title
-    jarri.List Components In Context
+    Start Application      jarri    java -jar Swing.jar
+    Select Main Window
+    ${i}=     Get Selected Window Title
+    List Components In Context
+    Start Application      jarri2    java -jar Swing.jar
+    Switch To Application  jarri2
     Stop Application       jarri
+	Select Main Window
+    List Components In Context
+    Stop Application       jarri2
