@@ -1,4 +1,9 @@
 import os
+import socket
+import threading
+import Queue
+import SocketServer
+import time
 from robot.libraries.Process import Process
 from robot.libraries.Remote import Remote
 from robot.running import EXECUTION_CONTEXTS
@@ -6,6 +11,17 @@ from robot.running.namespace import IMPORTER
 from robot.running.testlibraries import TestLibrary
 from robot.libraries.BuiltIn import BuiltIn
 
+REMOTE_AGENTS = Queue.Queue()
+
+class SimpleServer(SocketServer.BaseRequestHandler):
+
+    def handle(self):
+        data = b''.join(iter(self.read_socket, b''))
+        print 'port from agent: %s' %data.decode()
+        REMOTE_AGENTS.put(data.decode())
+
+    def read_socket(self):
+        return self.request.recv(1)
 
 class InvalidURLException(Exception):
     pass
@@ -61,15 +77,37 @@ class Rappio(object):
 
     ROBOT_LIBRARY_SCOPE = 'SUITE'
     KEYWORDS = ['start_application', 'application_started', 'switch_to_application', 'stop_application']
-    PORT=8181
     REMOTES = {}
     CURRENT = None
     PROCESS = Process()
     ROBOT_NAMESPACE_BRIDGE = RobotLibraryImporter()
     TIMEOUT = 60
+    PORT = None
+    STARTED = False
 
-    def __init__(self):
+    def __init__(self, port=None):
+        if port is None:
+            Rappio.PORT = self.get_open_port()
+        else:
+            Rappio.PORT = int(port)
         self.set_env()
+        if not Rappio.STARTED:
+            address = ('127.0.0.1', Rappio.PORT)
+            server = SocketServer.TCPServer(address, SimpleServer)
+            t = threading.Thread(target=server.serve_forever)
+            t.daemon = True # don't hang on exit
+            t.start()            
+            Rappio.STARTED = True
+            print 'server started at %s' %Rappio.PORT
+
+    def get_open_port(self):
+        import socket
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.bind(("",0))
+        s.listen(1)
+        port = s.getsockname()[1]
+        s.close()
+        return port       
 
     @property
     def current(self):
@@ -78,6 +116,8 @@ class Rappio(object):
         return self.REMOTES[self.CURRENT]
 
     def set_env(self):
+        if not Rappio.PORT:
+            raise Exception("Port is not defined!")
         os.environ['JAVA_TOOL_OPTIONS'] = \
             '-javaagent:robotframework-rappio-1.0-SNAPSHOT-jar-with-dependencies.jar=%s' % Rappio.PORT
 
@@ -87,11 +127,11 @@ class Rappio(object):
 
     def application_started(self, alias, timeout=60):
         self.TIMEOUT = int(timeout)
-        self.REMOTES[alias] = Remote('localhost:%s' % Rappio.PORT)
+        port = REMOTE_AGENTS.get(True, 10);
+        self.REMOTES[alias] = Remote('127.0.0.1:%s' %port)
         Rappio.CURRENT = alias
-        Rappio.PORT += 1
-        self.set_env()
         self.ROBOT_NAMESPACE_BRIDGE.re_import_rappio()
+        print 'added remote agent %s at %s' %(alias, port)
 
     def switch_to_application(self, alias):
         Rappio.CURRENT = alias
@@ -113,3 +153,13 @@ class Rappio(object):
         def func(*args, **kwargs):
             return current.run_keyword(name, args, kwargs)
         return func
+ 
+if __name__ == "__main__":
+    print "__main__ start"
+    address = ('127.0.0.1', 8181)
+    server = SocketServer.TCPServer(address, SimpleServer)
+    t = threading.Thread(target=server.serve_forever)
+    t.daemon = True # don't hang on exit
+    t.start()  
+    time.sleep(20)
+    print "__main__ stop"       

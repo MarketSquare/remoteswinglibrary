@@ -1,15 +1,10 @@
 *** Settings ***
-Library   Rappio.py
+Library   Rappio.py   8181
 
 *** Test Cases ***
 Something
-    Start Application      jarri    java -jar Swing.jar
-    Select Main Window
-    ${i}=     Get Selected Window Title
-    List Components In Context
-    Start Application      jarri2    java -jar Swing.jar
-    Switch To Application  jarri2
+    Start Application      jarri    java -jar faren.jar
     Stop Application       jarri
-	Select Main Window
-    List Components In Context
+    Start Application      jarri2    java -jar faren.jar
+    Switch To Application  jarri2
     Stop Application       jarri2
