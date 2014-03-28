@@ -10,15 +10,14 @@ from robot.running import EXECUTION_CONTEXTS
 from robot.running.namespace import IMPORTER
 from robot.running.testlibraries import TestLibrary
 from robot.libraries.BuiltIn import BuiltIn
-
 REMOTE_AGENTS = Queue.Queue()
 
 class SimpleServer(SocketServer.BaseRequestHandler):
 
     def handle(self):
         data = b''.join(iter(self.read_socket, b''))
-        print 'port from agent: %s' %data.decode()
         REMOTE_AGENTS.put(data.decode())
+        self.request.sendall(data)
 
     def read_socket(self):
         return self.request.recv(1)
@@ -83,25 +82,23 @@ class Rappio(object):
     ROBOT_NAMESPACE_BRIDGE = RobotLibraryImporter()
     TIMEOUT = 60
     PORT = None
-    STARTED = False
 
     def __init__(self, port=None):
-        if port is None:
-            Rappio.PORT = self.get_open_port()
-        else:
-            Rappio.PORT = int(port)
+        if Rappio.PORT is None:
+            if port is None:
+                Rappio.PORT = self.get_open_port()
+            else:
+                Rappio.PORT = int(port)            
+                address = ('127.0.0.1', Rappio.PORT)
+                server = SocketServer.TCPServer(address, SimpleServer)
+                server.allow_reuse_address = True
+                t = threading.Thread(target=server.serve_forever)
+                t.daemon = True # don't hang on exit
+                t.start()            
         self.set_env()
-        if not Rappio.STARTED:
-            address = ('127.0.0.1', Rappio.PORT)
-            server = SocketServer.TCPServer(address, SimpleServer)
-            t = threading.Thread(target=server.serve_forever)
-            t.daemon = True # don't hang on exit
-            t.start()            
-            Rappio.STARTED = True
-            print 'server started at %s' %Rappio.PORT
+
 
     def get_open_port(self):
-        import socket
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.bind(("",0))
         s.listen(1)
@@ -127,11 +124,10 @@ class Rappio(object):
 
     def application_started(self, alias, timeout=60):
         self.TIMEOUT = int(timeout)
-        port = REMOTE_AGENTS.get(True, 10);
+        port = REMOTE_AGENTS.get(True, self.TIMEOUT);
         self.REMOTES[alias] = Remote('127.0.0.1:%s' %port)
         Rappio.CURRENT = alias
         self.ROBOT_NAMESPACE_BRIDGE.re_import_rappio()
-        print 'added remote agent %s at %s' %(alias, port)
 
     def switch_to_application(self, alias):
         Rappio.CURRENT = alias
@@ -154,12 +150,3 @@ class Rappio(object):
             return current.run_keyword(name, args, kwargs)
         return func
  
-if __name__ == "__main__":
-    print "__main__ start"
-    address = ('127.0.0.1', 8181)
-    server = SocketServer.TCPServer(address, SimpleServer)
-    t = threading.Thread(target=server.serve_forever)
-    t.daemon = True # don't hang on exit
-    t.start()  
-    time.sleep(20)
-    print "__main__ stop"       

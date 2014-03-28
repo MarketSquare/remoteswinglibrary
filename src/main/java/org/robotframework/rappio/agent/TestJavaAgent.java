@@ -2,6 +2,7 @@ package org.robotframework.rappio.agent;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -11,8 +12,11 @@ import java.util.Properties;
 
 import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.FileAppender;
+import org.apache.log4j.Layout;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.apache.log4j.SimpleLayout;
 import org.apache.log4j.varia.NullAppender;
 import org.robotframework.rappio.remote.DaemonRemoteServer;
 import org.robotframework.remoteserver.RemoteServer;
@@ -26,8 +30,8 @@ public class TestJavaAgent {
 
 	public static void premain(String agentArgument, Instrumentation instrumentation){
 		try {
-			//noOutput();
-			toFile();
+			noOutput();
+			//toFile();
 			int port = Integer.parseInt(agentArgument);      
 			RemoteServer server = new DaemonRemoteServer();
 			server.putLibrary("/RPC2", new SwingLibrary());
@@ -40,6 +44,7 @@ public class TestJavaAgent {
 	        PrintWriter outToServer = new PrintWriter(echoSocket.getOutputStream(), true);
 	        outToServer.write(actualPort.toString());
 	        outToServer.close();
+	        echoSocket.close();
 		} catch (Exception e) {
 			System.err.println("Error starting remote server");
 			e.printStackTrace();
@@ -48,8 +53,12 @@ public class TestJavaAgent {
 		}
 	}
 	
-	private static void toFile() throws FileNotFoundException {
+	private static void toFile() throws IOException {
+		Logger root = Logger.getRootLogger();
+		root.setLevel(Level.DEBUG);
+		root.addAppender(new FileAppender(new SimpleLayout(), "file.log"));
 		System.setOut(new PrintStream(new FileOutputStream("file.log")));
+		System.setErr(new PrintStream(new FileOutputStream("file.log")));
 	}
 
 	// Silence stdout, some clients expect the output to be valid XML

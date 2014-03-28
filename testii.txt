@@ -4,7 +4,12 @@ Library   Rappio.py   8181
 *** Test Cases ***
 Something
     Start Application      jarri    java -jar faren.jar
-    Stop Application       jarri
+    Select Main Window
+    ${i}=     Get Selected Window Title
+    List Components In Context
     Start Application      jarri2    java -jar faren.jar
     Switch To Application  jarri2
+	Select Main Window
+    List Components In Context
+    Stop Application       jarri
     Stop Application       jarri2
