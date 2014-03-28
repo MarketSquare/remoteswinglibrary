@@ -89,12 +89,12 @@ class Rappio(object):
                 Rappio.PORT = self.get_open_port()
             else:
                 Rappio.PORT = int(port)            
-                address = ('127.0.0.1', Rappio.PORT)
-                server = SocketServer.TCPServer(address, SimpleServer)
-                server.allow_reuse_address = True
-                t = threading.Thread(target=server.serve_forever)
-                t.daemon = True # don't hang on exit
-                t.start()            
+            address = ('127.0.0.1', Rappio.PORT)
+            server = SocketServer.TCPServer(address, SimpleServer)
+            server.allow_reuse_address = True
+            t = threading.Thread(target=server.serve_forever)
+            t.daemon = True # don't hang on exit
+            t.start()            
         self.set_env()
 
 
