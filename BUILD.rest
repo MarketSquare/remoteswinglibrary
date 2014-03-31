@@ -1,0 +1,22 @@
+Sources
+=======
+
+Code is organized according to the Maven convention in `src/main/java` and
+`src/test/java`. 
+
+
+Building
+========
+
+Rappio uses Apache Maven_ as a build tool.
+
+__ http://maven.apache.org/
+
+- `mvn package` packages Rappio with dependencies.
+
+Releasing
+=========
+
+- 
+
+

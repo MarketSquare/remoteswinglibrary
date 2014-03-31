@@ -8,8 +8,29 @@
   <packaging>jar</packaging>
 
   <name>robotframework-rappio</name>
-  <url>http://maven.apache.org</url>
-
+  <description>A Robot Framework library + Java-agent for for Swing UI testing</description>
+  <url>https://github.com/robotframework/rappio</url>
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <scm>
+    <url>https://github.com/robotframework/rappio</url>
+    <connection>scm:git:https://github.com/robotframework/rappio</connection>
+  </scm>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+    
+  <developers>
+    <developer>
+      <name>Robot Framework developers</name>
+      <email>robotframework@gmail.com</email>
+    </developer>
+  </developers>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>

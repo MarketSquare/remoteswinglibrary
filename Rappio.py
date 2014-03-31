@@ -73,6 +73,13 @@ class RobotLibraryImporter(object):
 
 
 class Rappio(object):
+    """Robot Framework library leveraging Java-agents to run SwingLibrary keywords on Java-processes.
+
+    Usage:
+    Library   Rappio   [port]
+
+    Providing the port is optional. If you do not provide one, Rappio will ask the OS for an unused port.
+    """
 
     ROBOT_LIBRARY_SCOPE = 'SUITE'
     KEYWORDS = ['start_application', 'application_started', 'switch_to_application', 'stop_application']
