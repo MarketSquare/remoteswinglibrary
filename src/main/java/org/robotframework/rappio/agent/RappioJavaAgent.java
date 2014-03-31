@@ -24,15 +24,17 @@ import org.robotframework.swing.SwingLibrary;
 
 import sun.awt.AppContext;
 
-public class TestJavaAgent {
+public class RappioJavaAgent {
 
+	private static final String LOCALHOST = "127.0.0.1";
+	private static final int DEFAULT_RAPPIO_PORT = 8181;
 	private static PrintStream 	out = System.out;
 
 	public static void premain(String agentArgument, Instrumentation instrumentation){
 		try {
 			noOutput();
 			//toFile();
-			int port = Integer.parseInt(agentArgument);      
+			int port = getRappioPort(agentArgument);      
 			RemoteServer server = new DaemonRemoteServer();
 			server.putLibrary("/RPC2", new SwingLibrary());
 			server.setPort(0);
@@ -40,7 +42,7 @@ public class TestJavaAgent {
 			server.start();
 			AppContext.getAppContext();
 			Integer actualPort = server.getLocalPort();
-			Socket echoSocket = new Socket("127.0.0.1", port);
+			Socket echoSocket = new Socket(LOCALHOST, port);
 	        PrintWriter outToServer = new PrintWriter(echoSocket.getOutputStream(), true);
 	        outToServer.write(actualPort.toString());
 	        outToServer.close();
@@ -53,6 +55,15 @@ public class TestJavaAgent {
 		}
 	}
 	
+	private static int getRappioPort(String agentArgument) {
+		try{
+			return Integer.parseInt(agentArgument);
+		}catch(Exception e){
+			// Ignore and use default port
+		};
+		return DEFAULT_RAPPIO_PORT;
+	}
+
 	private static void toFile() throws IOException {
 		Logger root = Logger.getRootLogger();
 		root.setLevel(Level.DEBUG);

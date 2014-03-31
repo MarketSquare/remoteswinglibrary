@@ -155,7 +155,7 @@
               <classesDirectory>${project.build.directory}/jarjarred</classesDirectory>
               <archive>
                 <manifestEntries>
-                  <Premain-Class>org.robotframework.rappio.agent.TestJavaAgent</Premain-Class>
+                  <Premain-Class>org.robotframework.rappio.agent.RappioJavaAgent</Premain-Class>
                 </manifestEntries>
               </archive>
             </configuration>

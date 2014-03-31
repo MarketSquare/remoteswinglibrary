@@ -119,10 +119,13 @@ class Rappio(object):
             '-javaagent:robotframework-rappio-1.0-SNAPSHOT-jar-with-dependencies.jar=%s' % Rappio.PORT
 
     def start_application(self, alias, command, timeout=60):
+        """Starts the process in the `command` parameter  on the host operating system. The given alias is stored to identify the started application in Rappio."""
         self.PROCESS.start_process(command, alias=alias, shell=True)
         self.application_started(alias, timeout=timeout)
 
     def application_started(self, alias, timeout=60):
+        """Detects new Rappio Java-agents in applications that are started without using the Start Application -keyword. The given alias is stored to identify the started application in Rappio. 
+        Subsequent keywords will be passed on to this application."""
         self.TIMEOUT = int(timeout)
         port = REMOTE_AGENTS.get(True, self.TIMEOUT);
         self.REMOTES[alias] = Remote('127.0.0.1:%s' %port)
@@ -130,10 +133,13 @@ class Rappio(object):
         self.ROBOT_NAMESPACE_BRIDGE.re_import_rappio()
 
     def switch_to_application(self, alias):
+        """Switches between Java-agents in applications that are known to Rappio. The application is identified using the alias. 
+        Subsequent keywords will be passed on to this application."""
         Rappio.CURRENT = alias
         self.ROBOT_NAMESPACE_BRIDGE.re_import_rappio()
 
     def stop_application(self, alias):
+        """Stops the application with the given alias."""
         self.PROCESS.terminate_process(alias)
 
     # HYBRID KEYWORDS

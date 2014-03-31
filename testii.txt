@@ -8,8 +8,8 @@ Something
     ${i}=     Get Selected Window Title
     List Components In Context
     Start Application      jarri2    java -jar faren.jar
+    Stop Application       jarri
     Switch To Application  jarri2
 	Select Main Window
     List Components In Context
-    Stop Application       jarri
     Stop Application       jarri2
