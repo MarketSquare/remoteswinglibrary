@@ -3,6 +3,7 @@ Library   Rappio.py   8181
 
 *** Test Cases ***
 Something
+    Set Rappio Path    /Users/jokuusel/gitrepo/rappio/target/
     Start Application      jarri    java -jar faren.jar
     Select Main Window
     ${i}=     Get Selected Window Title
