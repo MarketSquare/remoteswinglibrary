@@ -152,7 +152,7 @@ class Rappio(object):
         """Detects new Rappio Java-agents in applications that are started without using the Start Application -keyword. The given alias is stored to identify the started application in Rappio. 
         Subsequent keywords will be passed on to this application."""
         self.TIMEOUT = int(timeout)
-        port = REMOTE_AGENTS.get(True, self.TIMEOUT);
+        port = REMOTE_AGENTS.get(True, self.TIMEOUT)
         self.REMOTES[alias] = Remote('127.0.0.1:%s' %port)
         Rappio.CURRENT = alias
         self.ROBOT_NAMESPACE_BRIDGE.re_import_rappio()
