@@ -29,12 +29,11 @@ public class RappioJavaAgent {
 
 	private static final String LOCALHOST = "127.0.0.1";
 	private static final int DEFAULT_RAPPIO_PORT = 8181;
-	private static PrintStream 	out = System.out;
+	private static PrintStream out = System.out;
 
 	public static void premain(String agentArgument, Instrumentation instrumentation){
 		try {
                     noOutput();
-                    //toFile();
                     int port = getRappioPort(agentArgument);      
                     RemoteServer server = new DaemonRemoteServer();
                     server.putLibrary("/RPC2", new SwingLibrary());
@@ -62,9 +61,8 @@ public class RappioJavaAgent {
 		try{
 			return Integer.parseInt(agentArgument);
 		}catch(Exception e){
-			// Ignore and use default port
-		};
-		return DEFAULT_RAPPIO_PORT;
+			return DEFAULT_RAPPIO_PORT;
+		}
 	}
 
 	private static void toFile() throws IOException {
