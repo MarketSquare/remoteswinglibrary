@@ -9,6 +9,7 @@ from robot.running.namespace import IMPORTER
 from robot.running.testlibraries import TestLibrary
 from robot.libraries.BuiltIn import BuiltIn
 from robot.api import logger
+
 REMOTE_AGENTS = Queue.Queue()
 
 class SimpleServer(SocketServer.BaseRequestHandler):
@@ -20,6 +21,7 @@ class SimpleServer(SocketServer.BaseRequestHandler):
 
     def read_socket(self):
         return self.request.recv(1)
+
 
 class InvalidURLException(Exception):
     pass
@@ -93,15 +95,8 @@ class Rappio(object):
 
     def __init__(self, port=None):
         if Rappio.PORT is None:
-            address = ('127.0.0.1', 0)
-            server = SocketServer.TCPServer(address, SimpleServer)
-            server.allow_reuse_address = True
-            t = threading.Thread(target=server.serve_forever)
-            t.daemon = True # don't hang on exit
-            t.start()
-            Rappio.PORT = server.server_address[1]
-        self.set_env()
-
+            Rappio.PORT = self._start_port_server()
+        self._set_env()
 
     @property
     def current(self):
@@ -109,9 +104,16 @@ class Rappio(object):
             return None
         return self.REMOTES[self.CURRENT]
 
-    def set_env(self):
-        if not Rappio.PORT:
-            raise Exception("Port is not defined!")
+    def _start_port_server(self):
+        address = ('127.0.0.1', 0)
+        server = SocketServer.TCPServer(address, SimpleServer)
+        server.allow_reuse_address = True
+        t = threading.Thread(target=server.serve_forever)
+        t.daemon = True # don't hang on exit
+        t.start()
+        return server.server_address[1]
+
+    def _set_env(self):
         path = os.path.join(Rappio.AGENT_PATH, 'robotframework-rappio-1.0-SNAPSHOT-jar-with-dependencies.jar')
         agent_command = '-javaagent:%s=%s' % (path, Rappio.PORT)
         os.environ['JAVA_TOOL_OPTIONS'] = agent_command
@@ -124,12 +126,11 @@ class Rappio(object):
         agent_command = '-javaagent:%srobotframework-rappio-1.0-SNAPSHOT-jar-with-dependencies.jar=%s' % (Rappio.AGENT_PATH, Rappio.PORT)
         logger.info(agent_command)
 
-
     def application_started(self, alias, timeout=60):
         """Detects new Rappio Java-agents in applications that are started without using the Start Application -keyword. The given alias is stored to identify the started application in Rappio. 
         Subsequent keywords will be passed on to this application."""
         self.TIMEOUT = int(timeout)
-        port = REMOTE_AGENTS.get(True, self.TIMEOUT)
+        port = REMOTE_AGENTS.get(timeout=self.TIMEOUT)
         self.REMOTES[alias] = Remote('127.0.0.1:%s' %port)
         Rappio.CURRENT = alias
         self.ROBOT_NAMESPACE_BRIDGE.re_import_rappio()
@@ -148,7 +149,8 @@ class Rappio(object):
 
     def get_keyword_names(self):
         if self.current:
-            return Rappio.KEYWORDS + [kw for kw in self.current.get_keyword_names(attempts=Rappio.TIMEOUT)
+            return Rappio.KEYWORDS + [kw for
+                                      kw in self.current.get_keyword_names(attempts=Rappio.TIMEOUT)
                                       if kw != 'startApplication']
         return Rappio.KEYWORDS
 
