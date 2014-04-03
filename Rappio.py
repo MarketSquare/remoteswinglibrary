@@ -95,7 +95,7 @@ class Rappio(object):
 
     def __init__(self, port=None):
         if Rappio.PORT is None:
-            Rappio.PORT = self._start_port_server()
+            Rappio.PORT = self._start_port_server(port or 0)
         self._set_env()
 
     @property
@@ -104,8 +104,8 @@ class Rappio(object):
             return None
         return self.REMOTES[self.CURRENT]
 
-    def _start_port_server(self):
-        address = ('127.0.0.1', 0)
+    def _start_port_server(self, port):
+        address = ('127.0.0.1', int(port))
         server = SocketServer.TCPServer(address, SimpleServer)
         server.allow_reuse_address = True
         t = threading.Thread(target=server.serve_forever)
