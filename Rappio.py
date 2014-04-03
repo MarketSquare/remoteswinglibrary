@@ -1,9 +1,7 @@
 import os
-import socket
 import threading
 import Queue
 import SocketServer
-import time
 from robot.libraries.Process import Process
 from robot.libraries.Remote import Remote
 from robot.running import EXECUTION_CONTEXTS
@@ -84,37 +82,26 @@ class Rappio(object):
     """
 
     ROBOT_LIBRARY_SCOPE = 'SUITE'
-    KEYWORDS = ['start_application', 'application_started', 'switch_to_application', 'stop_application', 'set_rappio_path']
+    KEYWORDS = ['start_application', 'application_started', 'switch_to_application', 'stop_application']
     REMOTES = {}
     CURRENT = None
     PROCESS = Process()
     ROBOT_NAMESPACE_BRIDGE = RobotLibraryImporter()
     TIMEOUT = 60
     PORT = None
-    AGENT_PATH = ''
+    AGENT_PATH = os.path.abspath(os.path.dirname(__file__))
 
     def __init__(self, port=None):
         if Rappio.PORT is None:
-            if port is None:
-                Rappio.PORT = self.get_open_port()
-            else:
-                Rappio.PORT = int(port)            
-            address = ('127.0.0.1', Rappio.PORT)
+            address = ('127.0.0.1', 0)
             server = SocketServer.TCPServer(address, SimpleServer)
             server.allow_reuse_address = True
             t = threading.Thread(target=server.serve_forever)
             t.daemon = True # don't hang on exit
-            t.start()            
+            t.start()
+            Rappio.PORT = server.server_address[1]
         self.set_env()
 
-
-    def get_open_port(self):
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.bind(("",0))
-        s.listen(1)
-        port = s.getsockname()[1]
-        s.close()
-        return port       
 
     @property
     def current(self):
@@ -125,20 +112,10 @@ class Rappio(object):
     def set_env(self):
         if not Rappio.PORT:
             raise Exception("Port is not defined!")
-        agent_command = '-javaagent:%srobotframework-rappio-1.0-SNAPSHOT-jar-with-dependencies.jar=%s' % (Rappio.AGENT_PATH, Rappio.PORT)
+        path = os.path.join(Rappio.AGENT_PATH, 'robotframework-rappio-1.0-SNAPSHOT-jar-with-dependencies.jar')
+        agent_command = '-javaagent:%s=%s' % (path, Rappio.PORT)
         os.environ['JAVA_TOOL_OPTIONS'] = agent_command
         logger.info(agent_command)
-
-    def set_rappio_path(self, path):
-        """Sets the path to Rappio Java-agent jar. Note that on Windows systems the backslashes in the path should be escaped.
-
-        Examples:
-        | Set Rappio Path | /home/robot/libs/rappio.jar        |
-        | Set Rappio Path | C:\\\\Users\\\\Robot\\\\Libs\\\\rappio.jar |
-
-        """
-        Rappio.AGENT_PATH = path
-        self.set_env()
 
     def start_application(self, alias, command, timeout=60):
         """Starts the process in the `command` parameter  on the host operating system. The given alias is stored to identify the started application in Rappio."""
