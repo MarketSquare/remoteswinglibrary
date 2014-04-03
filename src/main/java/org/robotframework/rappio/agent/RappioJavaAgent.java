@@ -23,6 +23,7 @@ import org.robotframework.remoteserver.RemoteServer;
 import org.robotframework.swing.SwingLibrary;
 
 import sun.awt.AppContext;
+import sun.awt.SunToolkit;
 
 public class RappioJavaAgent {
 
@@ -32,21 +33,23 @@ public class RappioJavaAgent {
 
 	public static void premain(String agentArgument, Instrumentation instrumentation){
 		try {
-			noOutput();
-			//toFile();
-			int port = getRappioPort(agentArgument);      
-			RemoteServer server = new DaemonRemoteServer();
-			server.putLibrary("/RPC2", new SwingLibrary());
-			server.setPort(0);
-			server.setAllowStop(true);
-			server.start();
-			AppContext.getAppContext();
-			Integer actualPort = server.getLocalPort();
-			Socket echoSocket = new Socket(LOCALHOST, port);
-	        PrintWriter outToServer = new PrintWriter(echoSocket.getOutputStream(), true);
-	        outToServer.write(actualPort.toString());
-	        outToServer.close();
-	        echoSocket.close();
+                    noOutput();
+                    //toFile();
+                    int port = getRappioPort(agentArgument);      
+                    RemoteServer server = new DaemonRemoteServer();
+                    server.putLibrary("/RPC2", new SwingLibrary());
+                    server.setPort(0);
+                    server.setAllowStop(true);
+                    server.start();
+                    if(AppContext.getAppContext() == null){
+                        SunToolkit.createNewAppContext();
+                    };
+                    Integer actualPort = server.getLocalPort();
+                    Socket echoSocket = new Socket(LOCALHOST, port);
+                    PrintWriter outToServer = new PrintWriter(echoSocket.getOutputStream(), true);
+                    outToServer.write(actualPort.toString());
+                    outToServer.close();
+                    echoSocket.close();
 		} catch (Exception e) {
 			System.err.println("Error starting remote server");
 			e.printStackTrace();
