@@ -1,8 +1,5 @@
 package org.robotframework.rappio.agent;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -12,11 +9,8 @@ import java.util.Properties;
 
 import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.FileAppender;
-import org.apache.log4j.Layout;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
 import org.apache.log4j.varia.NullAppender;
 import org.robotframework.rappio.remote.DaemonRemoteServer;
 import org.robotframework.remoteserver.RemoteServer;
@@ -42,7 +36,7 @@ public class RappioJavaAgent {
                     server.start();
                     if(AppContext.getAppContext() == null){
                         SunToolkit.createNewAppContext();
-                    };
+                    }
                     Integer actualPort = server.getLocalPort();
                     Socket echoSocket = new Socket(LOCALHOST, port);
                     PrintWriter outToServer = new PrintWriter(echoSocket.getOutputStream(), true);
@@ -63,14 +57,6 @@ public class RappioJavaAgent {
 		}catch(Exception e){
 			return DEFAULT_RAPPIO_PORT;
 		}
-	}
-
-	private static void toFile() throws IOException {
-		Logger root = Logger.getRootLogger();
-		root.setLevel(Level.DEBUG);
-		root.addAppender(new FileAppender(new SimpleLayout(), "file.log"));
-		System.setOut(new PrintStream(new FileOutputStream("file.log")));
-		System.setErr(new PrintStream(new FileOutputStream("file.log")));
 	}
 
 	// Silence stdout, some clients expect the output to be valid XML
