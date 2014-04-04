@@ -10,7 +10,7 @@ from robot.running.testlibraries import TestLibrary
 from robot.libraries.BuiltIn import BuiltIn
 from robot.api import logger
 
-REMOTE_AGENTS = Queue.Queue()
+REMOTE_AGENTS = Queue.LifoQueue()
 
 class SimpleServer(SocketServer.BaseRequestHandler):
 
