@@ -11,12 +11,15 @@ from robot.libraries.BuiltIn import BuiltIn
 from robot.api import logger
 
 REMOTE_AGENTS = Queue.LifoQueue()
+AGENT_RECEIVED = threading.Event()
 
 class SimpleServer(SocketServer.BaseRequestHandler):
 
     def handle(self):
         data = b''.join(iter(self.read_socket, b''))
+        print '*DEBUG* Registered java rappio agent at port %s' % data.decode()
         REMOTE_AGENTS.put(data.decode())
+        AGENT_RECEIVED.set()
         self.request.sendall(data)
 
     def read_socket(self):
@@ -121,6 +124,7 @@ class Rappio(object):
 
     def start_application(self, alias, command, timeout=60):
         """Starts the process in the `command` parameter  on the host operating system. The given alias is stored to identify the started application in Rappio."""
+        AGENT_RECEIVED.clear() # We are going to wait for a specific agent
         self.PROCESS.start_process(command, alias=alias, shell=True)
         self.application_started(alias, timeout=timeout)
         agent_command = '-javaagent:%srobotframework-rappio-1.0-SNAPSHOT-jar-with-dependencies.jar=%s' % (Rappio.AGENT_PATH, Rappio.PORT)
@@ -130,6 +134,7 @@ class Rappio(object):
         """Detects new Rappio Java-agents in applications that are started without using the Start Application -keyword. The given alias is stored to identify the started application in Rappio. 
         Subsequent keywords will be passed on to this application."""
         self.TIMEOUT = int(timeout)
+        AGENT_RECEIVED.wait(timeout=self.TIMEOUT) # Ensure that a waited agent is the one we are receiving and not some older one
         port = REMOTE_AGENTS.get(timeout=self.TIMEOUT)
         self.REMOTES[alias] = Remote('127.0.0.1:%s' %port)
         Rappio.CURRENT = alias
