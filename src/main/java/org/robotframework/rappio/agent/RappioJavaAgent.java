@@ -2,21 +2,25 @@ package org.robotframework.rappio.agent;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class RappioJavaAgent {
 
 	private static final int DEFAULT_RAPPIO_PORT = 8181;
         private static int PORT = DEFAULT_RAPPIO_PORT;
-        static Thread someThread = null;
+        private static final AtomicBoolean STARTED = new AtomicBoolean(false);
 	static Instrumentation instrumentationInstance = null;
 	static ClassFileTransformer transformer = null;
         
         public static void premain(String agentArguments, final Instrumentation inst) throws Exception {
             instrumentationInstance = inst;
             PORT = getRappioPort(agentArguments);
+            java.util.logging.Logger.getGlobal().info("OKSAT POIS");
             if(isRunningJavaWebStart()) {
+                    System.out.println("TANNE MENTIIN");
                     transformer = new ClassListenerTransformer();
                     inst.addTransformer(transformer);
+                    System.out.println("SIT ULOS");
             } else {
                     startRappioServer();
             }
@@ -24,17 +28,18 @@ public class RappioJavaAgent {
         
         public static void startRappioServer(ClassLoader classLoader) {
             // Only do this once
-            if(someThread==null) {
+            if(!STARTED.get()) {
                 @SuppressWarnings("rawtypes")
                     Class runnableClass;
                     try {
                         instrumentationInstance.removeTransformer(transformer);
                         runnableClass = classLoader.loadClass("org.robotframework.rappio.RappioServer");
                         Object r = runnableClass.getDeclaredConstructor(Integer.class).newInstance(PORT);
-                        someThread = new Thread((Runnable) r);
+                        Thread someThread = new Thread((Runnable) r);
                         someThread.setContextClassLoader(classLoader);
                         someThread.setDaemon(true);
                         someThread.start();
+                        STARTED.set(true);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -43,10 +48,11 @@ public class RappioJavaAgent {
         
         public static void startRappioServer() {
             // Only do this once
-            if(someThread==null) {
-                    someThread = new Thread(new RappioServer(PORT));
+            if(!STARTED.get()) {
+                    Thread someThread = new Thread(new RappioServer(PORT));
                     someThread.setDaemon(true);
                     someThread.start();
+                    STARTED.set(true);
             }
         }
         

@@ -47,7 +47,7 @@ public class RappioServer implements Runnable {
     
     public void run() {
             try {
-                 noOutput();
+                 //noOutput();
                  RemoteServer server = new DaemonRemoteServer();
                  server.putLibrary("/RPC2", new SwingLibrary());
                  server.setPort(0);
