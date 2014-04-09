@@ -1,8 +1,9 @@
 package org.robotframework.rappio.agent;
 
-import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class RappioJavaAgent {
@@ -10,18 +11,23 @@ public class RappioJavaAgent {
 	private static final int DEFAULT_RAPPIO_PORT = 8181;
         private static int PORT = DEFAULT_RAPPIO_PORT;
         private static final AtomicBoolean STARTED = new AtomicBoolean(false);
-	static Instrumentation instrumentationInstance = null;
-	static ClassFileTransformer transformer = null;
-        
+	
         public static void premain(String agentArguments, final Instrumentation inst) throws Exception {
-            instrumentationInstance = inst;
             PORT = getRappioPort(agentArguments);
             if(isRunningJavaWebStart()) {
-                Set<Thread> threads = Thread.getAllStackTraces().keySet();
-                for(Thread t:threads) {
-                    System.out.println("Thread:  "+t);
-                }
-                System.exit(0);
+                Timer t = new Timer(true);
+                t.schedule(new TimerTask() {
+                     @Override
+                     public void run() {
+                        Set<Thread> threads = Thread.getAllStackTraces().keySet();
+                        for(Thread t:threads) {
+                            ClassLoader c = t.getContextClassLoader();
+                            System.out.println("Thread:  "+t+" loader "+c);
+                            if(c != null && c.getClass().getName().contains("JNLP")){
+                                System.out.println("Starting with loader "+c);
+                                RappioJavaAgent.startRappioServer(c);
+                            }
+                        }}}, 2000);
             } else {
                 startRappioServer();
             }
@@ -33,7 +39,6 @@ public class RappioJavaAgent {
                 @SuppressWarnings("rawtypes")
                 Class runnableClass;
                 try {
-                    instrumentationInstance.removeTransformer(transformer);
                     runnableClass = classLoader.loadClass("org.robotframework.rappio.RappioServer");
                     Object r = runnableClass.getDeclaredConstructor(Integer.class).newInstance(PORT);
                     Thread someThread = new Thread((Runnable) r);
