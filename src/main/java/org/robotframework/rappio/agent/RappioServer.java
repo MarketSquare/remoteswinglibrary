@@ -41,8 +41,8 @@ public class RappioServer implements Runnable {
     private static final String LOCALHOST = "127.0.0.1";
     private PrintStream out = System.out;
     
-    public RappioServer(int port) {
-        this.port = port;
+    public RappioServer() {
+        this.port = RappioJavaAgent.PORT;
     }
     
     public void run() {
