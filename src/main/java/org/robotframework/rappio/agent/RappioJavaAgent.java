@@ -87,14 +87,12 @@ public class RappioJavaAgent {
         }
         
         private static boolean isRunningJavaWebStart() {
-	    boolean hasJNLP = false;
 	    try {
 	      Class.forName("javax.jnlp.ServiceManager");
-	      hasJNLP = true;
+	      return true;
 	    } catch (ClassNotFoundException ex) {
-	      hasJNLP = false;
+	      return false;
 	    }
-	    return hasJNLP;
 	}
         
 	private static int getRappioPort(String agentArgument) {
