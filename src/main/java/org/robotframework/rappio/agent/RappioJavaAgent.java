@@ -27,22 +27,23 @@ public class RappioJavaAgent {
 
 	public static void premain(String agentArgument, Instrumentation instrumentation){
 		try {
-                    noOutput();
-                    int port = getRappioPort(agentArgument);      
-                    RemoteServer server = new DaemonRemoteServer();
-                    server.putLibrary("/RPC2", new SwingLibrary());
-                    server.setPort(0);
-                    server.setAllowStop(true);
-                    server.start();
-                    if(AppContext.getAppContext() == null){
-                        SunToolkit.createNewAppContext();
-                    }
-                    Integer actualPort = server.getLocalPort();
-                    Socket echoSocket = new Socket(LOCALHOST, port);
-                    PrintWriter outToServer = new PrintWriter(echoSocket.getOutputStream(), true);
-                    outToServer.write(actualPort.toString());
-                    outToServer.close();
-                    echoSocket.close();
+            noOutput();
+            int port = getRappioPort(agentArgument);
+            RemoteServer server = new DaemonRemoteServer();
+            server.putLibrary("/RPC2", new SwingLibrary());
+            server.putLibrary("/rappioservices", new RappioServicesLibrary());
+            server.setPort(0);
+            server.setAllowStop(true);
+            server.start();
+            if(AppContext.getAppContext() == null){
+                SunToolkit.createNewAppContext();
+            }
+            Integer actualPort = server.getLocalPort();
+            Socket echoSocket = new Socket(LOCALHOST, port);
+            PrintWriter outToServer = new PrintWriter(echoSocket.getOutputStream(), true);
+            outToServer.write(actualPort.toString());
+            outToServer.close();
+            echoSocket.close();
 		} catch (Exception e) {
 			System.err.println("Error starting remote server");
 			e.printStackTrace();
@@ -50,7 +51,7 @@ public class RappioJavaAgent {
 			System.setOut(out);
 		}
 	}
-	
+
 	private static int getRappioPort(String agentArgument) {
 		try{
 			return Integer.parseInt(agentArgument);
@@ -72,7 +73,7 @@ public class RappioJavaAgent {
 		Properties p = new Properties();
 		p.setProperty("org.eclipse.jetty.LEVEL", "WARN");
 		org.eclipse.jetty.util.log.StdErrLog.setProperties(p);
-		
+
 		// Jemmy bootstrap prints to stdout, replace with no-op while SwingLibrary is starting
 		System.setOut(new PrintStream(new OutputStream() {
 			public void write(int b) {

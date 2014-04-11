@@ -87,7 +87,7 @@ class Rappio(object):
     """
 
     ROBOT_LIBRARY_SCOPE = 'SUITE'
-    KEYWORDS = ['start_application', 'application_started', 'switch_to_application', 'stop_application']
+    KEYWORDS = ['kill_application', 'start_application', 'application_started', 'switch_to_application', 'stop_application']
     REMOTES = {}
     CURRENT = None
     PROCESS = Process()
@@ -105,7 +105,7 @@ class Rappio(object):
     def current(self):
         if not self.CURRENT:
             return None
-        return self.REMOTES[self.CURRENT]
+        return self.REMOTES[self.CURRENT][0]
 
     def _start_port_server(self, port):
         address = ('127.0.0.1', int(port))
@@ -139,9 +139,12 @@ class Rappio(object):
         self.TIMEOUT = int(timeout)
         AGENT_RECEIVED.wait(timeout=self.TIMEOUT) # Ensure that a waited agent is the one we are receiving and not some older one
         port = REMOTE_AGENTS.get(timeout=self.TIMEOUT)
-        self.REMOTES[alias] = Remote('127.0.0.1:%s' %port)
+        self.REMOTES[alias] = [Remote('127.0.0.1:%s' %port), Remote('127.0.0.1:%s/rappioservices' % port)]
         Rappio.CURRENT = alias
         self.ROBOT_NAMESPACE_BRIDGE.re_import_rappio()
+
+    def kill_application(self, alias):
+        self.REMOTES[alias][1].run_keyword('killApplication', (), {})
 
     def switch_to_application(self, alias):
         """Switches between Java-agents in applications that are known to Rappio. The application is identified using the alias.
