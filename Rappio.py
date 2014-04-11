@@ -77,7 +77,7 @@ class RobotLibraryImporter(object):
 
 
 class Rappio(object):
-    """Robot Framework library leveraging Java-agents to run SwingLibrary keywords on Java-processes. The library contains 
+    """Robot Framework library leveraging Java-agents to run SwingLibrary keywords on Java-processes. The library contains
     a simple socket server to communicate with Java agents. When taking the library into use, you can specify the port this
     server uses. Providing the port is optional. If you do not provide one, Rappio will ask the OS for an unused port.
 
@@ -117,8 +117,7 @@ class Rappio(object):
         return server.server_address[1]
 
     def _set_env(self):
-        path = os.path.join(Rappio.AGENT_PATH, 'robotframework-rappio-1.0-SNAPSHOT-jar-with-dependencies.jar')
-        agent_command = '-javaagent:%s=%s' % (path, Rappio.PORT)
+        agent_command = '-javaagent:%s=%s' % (Rappio.AGENT_PATH, Rappio.PORT)
         os.environ['JAVA_TOOL_OPTIONS'] = agent_command
         logger.info(agent_command)
 
@@ -126,12 +125,16 @@ class Rappio(object):
         """Starts the process in the `command` parameter  on the host operating system. The given alias is stored to identify the started application in Rappio."""
         AGENT_RECEIVED.clear() # We are going to wait for a specific agent
         self.PROCESS.start_process(command, alias=alias, shell=True)
-        self.application_started(alias, timeout=timeout)
-        agent_command = '-javaagent:%srobotframework-rappio-1.0-SNAPSHOT-jar-with-dependencies.jar=%s' % (Rappio.AGENT_PATH, Rappio.PORT)
-        logger.info(agent_command)
+        try:
+            self.application_started(alias, timeout=timeout)
+        except:
+            result = self.PROCESS.terminate_process()
+            print "STDOUT: " + result.stdout
+            print "STDERR: " + result.stderr
+            raise
 
     def application_started(self, alias, timeout=60):
-        """Detects new Rappio Java-agents in applications that are started without using the Start Application -keyword. The given alias is stored to identify the started application in Rappio. 
+        """Detects new Rappio Java-agents in applications that are started without using the Start Application -keyword. The given alias is stored to identify the started application in Rappio.
         Subsequent keywords will be passed on to this application."""
         self.TIMEOUT = int(timeout)
         AGENT_RECEIVED.wait(timeout=self.TIMEOUT) # Ensure that a waited agent is the one we are receiving and not some older one
@@ -141,7 +144,7 @@ class Rappio(object):
         self.ROBOT_NAMESPACE_BRIDGE.re_import_rappio()
 
     def switch_to_application(self, alias):
-        """Switches between Java-agents in applications that are known to Rappio. The application is identified using the alias. 
+        """Switches between Java-agents in applications that are known to Rappio. The application is identified using the alias.
         Subsequent keywords will be passed on to this application."""
         Rappio.CURRENT = alias
         self.ROBOT_NAMESPACE_BRIDGE.re_import_rappio()
@@ -164,4 +167,3 @@ class Rappio(object):
         def func(*args, **kwargs):
             return current.run_keyword(name, args, kwargs)
         return func
- 

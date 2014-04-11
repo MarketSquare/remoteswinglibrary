@@ -3,8 +3,8 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.robotframework.rappio</groupId>
-  <artifactId>robotframework-rappio</artifactId>
-  <version>1.0-SNAPSHOT-jar-with-dependencies</version>
+  <artifactId>rappio</artifactId>
+  <version>1.0</version>
   <packaging>jar</packaging>
 
   <name>robotframework-rappio</name>
@@ -24,7 +24,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
-    
+
   <developers>
     <developer>
       <name>Robot Framework developers</name>
@@ -44,14 +44,14 @@
     <version>1.9.1</version>
     </dependency>
   </dependencies>
-  
+
   <build>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
         <version>2.8</version>
-      </plugin>    
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
@@ -70,7 +70,7 @@
             </goals>
           </execution>
         </executions>
-      </plugin>    
+      </plugin>
       <plugin>
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>jarjar-maven-plugin</artifactId>
@@ -150,7 +150,7 @@
                 </keep>
                 <keep>
                   <pattern>org.robotframework.**</pattern>
-                </keep>                
+                </keep>
                 <keep>
                   <pattern>JavaTools</pattern>
                 </keep>
@@ -158,7 +158,7 @@
             </configuration>
           </execution>
         </executions>
-      </plugin> 
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
@@ -179,7 +179,20 @@
             </configuration>
           </execution>
         </executions>
-      </plugin>       
+      </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-resources-plugin</artifactId>
+            <version>2.3</version>
+        </plugin>
     </plugins>
-  </build>  
+      <resources>
+          <resource>
+              <directory>.</directory>
+              <includes>
+                  <include> *.py</include>
+              </includes>
+          </resource>
+      </resources>
+  </build>
 </project>
