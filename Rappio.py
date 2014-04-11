@@ -1,7 +1,9 @@
 import os
 import threading
+import time
 import Queue
 import SocketServer
+from robot.errors import HandlerExecutionFailed
 from robot.libraries.Process import Process
 from robot.libraries.Remote import Remote
 from robot.running import EXECUTION_CONTEXTS
@@ -87,7 +89,8 @@ class Rappio(object):
     """
 
     ROBOT_LIBRARY_SCOPE = 'SUITE'
-    KEYWORDS = ['kill_application', 'start_application', 'application_started', 'switch_to_application', 'stop_application']
+    KEYWORDS = ['kill_application', 'start_application', 'application_started', 'switch_to_application',
+                'stop_application', 'ensure_application_is_closed']
     REMOTES = {}
     CURRENT = None
     PROCESS = Process()
@@ -142,6 +145,29 @@ class Rappio(object):
         self.REMOTES[alias] = [Remote('127.0.0.1:%s' %port), Remote('127.0.0.1:%s/rappioservices' % port)]
         Rappio.CURRENT = alias
         self.ROBOT_NAMESPACE_BRIDGE.re_import_rappio()
+
+    def ensure_application_is_closed(self, timeout, kw, *args):
+        timeout = int(timeout)
+        start = time.time()
+        try:
+            BuiltIn().run_keyword(kw, *args)
+            timeout -= (time.time()-start)
+            while timeout > 0:
+                start = time.time()
+                self.REMOTES[Rappio.CURRENT][1].run_keyword('ping', (), {})
+                timeout -= (time.time()-start)
+            logger.info('Application is not closed before timeout - killing application')
+            self.kill_application(Rappio.CURRENT)
+        except RuntimeError, r:
+            if 'Connection to remote server broken:' in r.message:
+                logger.debug('Connection died as expected')
+                return
+            raise
+        except HandlerExecutionFailed, e:
+            if 'Connection to remote server broken:' in e.message:
+                logger.debug('Connection died as expected')
+                return
+            raise
 
     def kill_application(self, alias):
         self.REMOTES[alias][1].run_keyword('killApplication', (), {})

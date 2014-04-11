@@ -5,4 +5,8 @@ public class RappioServicesLibrary {
     public void killApplication() {
         System.exit(1);
     }
+    
+    public String ping() {
+        return "pong";
+    }
 }
