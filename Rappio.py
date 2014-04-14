@@ -1,10 +1,10 @@
+from __future__ import with_statement
 from contextlib import contextmanager
 import os
 import threading
 import time
 import Queue
 import SocketServer
-import math
 from robot.errors import HandlerExecutionFailed, TimeoutError
 from robot.libraries.Process import Process
 from robot.libraries.Remote import Remote
@@ -92,7 +92,7 @@ class Rappio(object):
 
     ROBOT_LIBRARY_SCOPE = 'SUITE'
     KEYWORDS = ['system_exit', 'start_application', 'application_started', 'switch_to_application',
-                'stop_application', 'ensure_application_should_close']
+                'ensure_application_should_close']
     REMOTES = {}
     CURRENT = None
     PROCESS = Process()
@@ -198,10 +198,6 @@ class Rappio(object):
         Subsequent keywords will be passed on to this application."""
         Rappio.CURRENT = alias
         self.ROBOT_NAMESPACE_BRIDGE.re_import_rappio()
-
-    def stop_application(self, alias):
-        """Stops the application with the given alias."""
-        self.PROCESS.terminate_process(alias)
 
     # HYBRID KEYWORDS
 
