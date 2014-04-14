@@ -1,9 +1,11 @@
+from contextlib import contextmanager
 import os
 import threading
 import time
 import Queue
 import SocketServer
-from robot.errors import HandlerExecutionFailed
+import math
+from robot.errors import HandlerExecutionFailed, TimeoutError
 from robot.libraries.Process import Process
 from robot.libraries.Remote import Remote
 from robot.running import EXECUTION_CONTEXTS
@@ -89,8 +91,8 @@ class Rappio(object):
     """
 
     ROBOT_LIBRARY_SCOPE = 'SUITE'
-    KEYWORDS = ['kill_application', 'start_application', 'application_started', 'switch_to_application',
-                'stop_application', 'ensure_application_is_closed']
+    KEYWORDS = ['system_exit', 'start_application', 'application_started', 'switch_to_application',
+                'stop_application', 'ensure_application_should_close']
     REMOTES = {}
     CURRENT = None
     PROCESS = Process()
@@ -146,18 +148,36 @@ class Rappio(object):
         Rappio.CURRENT = alias
         self.ROBOT_NAMESPACE_BRIDGE.re_import_rappio()
 
-    def ensure_application_is_closed(self, timeout, kw, *args):
-        timeout = int(timeout)
-        start = time.time()
-        try:
+    def _ping_until_timeout(self, timeout):
+        timeout = float(timeout)
+        delta = min(0.1, timeout)
+        endtime = timeout+time.time()
+        while endtime > time.time():
+            self._run_from_rappioservices(Rappio.CURRENT, 'ping')
+            time.sleep(delta)
+
+    def _run_from_rappioservices(self, alias, kw, *args, **kwargs):
+        self.REMOTES[alias][1].run_keyword(kw, args, kwargs)
+
+    def ensure_application_should_close(self, timeout, kw, *args):
+        with self._run_and_ignore_connection_lost():
             BuiltIn().run_keyword(kw, *args)
-            timeout -= (time.time()-start)
-            while timeout > 0:
-                start = time.time()
-                self.REMOTES[Rappio.CURRENT][1].run_keyword('ping', (), {})
-                timeout -= (time.time()-start)
-            logger.info('Application is not closed before timeout - killing application')
-            self.kill_application(Rappio.CURRENT)
+        try:
+            self._application_should_be_closed(timeout=timeout)
+        except TimeoutError, t:
+            logger.warn('Application is not closed before timeout - killing application')
+            self.system_exit(Rappio.CURRENT)
+            raise
+
+    def _application_should_be_closed(self, timeout):
+        with self._run_and_ignore_connection_lost():
+            self._ping_until_timeout(timeout)
+            raise TimeoutError('Application was not closed before timeout')
+
+    @contextmanager
+    def _run_and_ignore_connection_lost(self):
+        try:
+            yield
         except RuntimeError, r:
             if 'Connection to remote server broken:' in r.message:
                 logger.debug('Connection died as expected')
@@ -169,8 +189,9 @@ class Rappio(object):
                 return
             raise
 
-    def kill_application(self, alias):
-        self.REMOTES[alias][1].run_keyword('killApplication', (), {})
+    def system_exit(self, alias, exit_code=1):
+        with self._run_and_ignore_connection_lost():
+            self._run_from_rappioservices(alias, 'systemExit', exit_code)
 
     def switch_to_application(self, alias):
         """Switches between Java-agents in applications that are known to Rappio. The application is identified using the alias.
