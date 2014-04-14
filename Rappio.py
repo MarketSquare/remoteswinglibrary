@@ -3,7 +3,6 @@ from contextlib import contextmanager
 import os
 import threading
 import time
-import Queue
 import SocketServer
 from robot.errors import HandlerExecutionFailed, TimeoutError
 from robot.libraries.Process import Process
@@ -14,16 +13,16 @@ from robot.running.testlibraries import TestLibrary
 from robot.libraries.BuiltIn import BuiltIn
 from robot.api import logger
 
-REMOTE_AGENTS = Queue.LifoQueue()
-AGENT_RECEIVED = threading.Event()
+REMOTE_AGENTS_LIST = []
+EXPECTED_AGENT_RECEIVED = threading.Event()
 
 class SimpleServer(SocketServer.BaseRequestHandler):
 
     def handle(self):
-        data = b''.join(iter(self.read_socket, b''))
+        data = ''.join(iter(self.read_socket, ''))
         print '*DEBUG* Registered java rappio agent at port %s' % data.decode()
-        REMOTE_AGENTS.put(data.decode())
-        AGENT_RECEIVED.set()
+        REMOTE_AGENTS_LIST.append(data.decode())
+        EXPECTED_AGENT_RECEIVED.set()
         self.request.sendall(data)
 
     def read_socket(self):
@@ -128,7 +127,7 @@ class Rappio(object):
 
     def start_application(self, alias, command, timeout=60):
         """Starts the process in the `command` parameter  on the host operating system. The given alias is stored to identify the started application in Rappio."""
-        AGENT_RECEIVED.clear() # We are going to wait for a specific agent
+        EXPECTED_AGENT_RECEIVED.clear() # We are going to wait for a specific agent
         self.PROCESS.start_process(command, alias=alias, shell=True)
         try:
             self.application_started(alias, timeout=timeout)
@@ -142,8 +141,10 @@ class Rappio(object):
         """Detects new Rappio Java-agents in applications that are started without using the Start Application -keyword. The given alias is stored to identify the started application in Rappio.
         Subsequent keywords will be passed on to this application."""
         self.TIMEOUT = int(timeout)
-        AGENT_RECEIVED.wait(timeout=self.TIMEOUT) # Ensure that a waited agent is the one we are receiving and not some older one
-        port = REMOTE_AGENTS.get(timeout=self.TIMEOUT)
+        if not REMOTE_AGENTS_LIST:
+            EXPECTED_AGENT_RECEIVED.clear()
+        EXPECTED_AGENT_RECEIVED.wait(timeout=self.TIMEOUT) # Ensure that a waited agent is the one we are receiving and not some older one
+        port = REMOTE_AGENTS_LIST.pop()
         self.REMOTES[alias] = [Remote('127.0.0.1:%s' %port), Remote('127.0.0.1:%s/rappioservices' % port)]
         Rappio.CURRENT = alias
         self.ROBOT_NAMESPACE_BRIDGE.re_import_rappio()
