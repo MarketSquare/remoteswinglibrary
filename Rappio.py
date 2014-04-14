@@ -116,7 +116,7 @@ class Rappio(object):
         server = SocketServer.TCPServer(address, SimpleServer)
         server.allow_reuse_address = True
         t = threading.Thread(target=server.serve_forever)
-        t.daemon = True # don't hang on exit
+        t.setDaemon(True)
         t.start()
         return server.server_address[1]
 
