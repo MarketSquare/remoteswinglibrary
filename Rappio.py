@@ -80,6 +80,10 @@ class RobotLibraryImporter(object):
             del(testlibs[name])
 
 
+class RappioTimeoutError(RuntimeError):
+    pass
+
+
 class Rappio(object):
     """Robot Framework library leveraging Java-agents to run SwingLibrary keywords on Java-processes. The library contains
     a simple socket server to communicate with Java agents. When taking the library into use, you can specify the port this
@@ -133,9 +137,9 @@ class Rappio(object):
         try:
             self.application_started(alias, timeout=timeout)
         except:
-            result = self.PROCESS.terminate_process()
-            logger.info('STDOUT: ' + result.stdout)
-            logger.info('STDERR: ' + result.stderr)
+            result = self.PROCESS.wait_for_process(timeout=0.01)
+            logger.info('STDOUT: %s' % result.stdout)
+            logger.info('STDERR: %s' % result.stderr)
             raise
 
     def application_started(self, alias, timeout=60):
@@ -151,8 +155,9 @@ class Rappio(object):
     def _get_agent_port(self):
         if not REMOTE_AGENTS_LIST:
             EXPECTED_AGENT_RECEIVED.clear()
-        EXPECTED_AGENT_RECEIVED.wait(
-            timeout=self.TIMEOUT) # Ensure that a waited agent is the one we are receiving and not some older one
+        if None is EXPECTED_AGENT_RECEIVED.wait(
+            timeout=self.TIMEOUT): # Ensure that a waited agent is the one we are receiving and not some older one
+            raise RappioTimeoutError('No signal from agent before timeout')
         return REMOTE_AGENTS_LIST.pop()
 
     def _ping_until_timeout(self, timeout):
@@ -171,7 +176,7 @@ class Rappio(object):
             BuiltIn().run_keyword(kw, *args)
         try:
             self._application_should_be_closed(timeout=timeout)
-        except TimeoutError, t:
+        except RappioTimeoutError, t:
             logger.warn('Application is not closed before timeout - killing application')
             self._take_screenshot()
             self.system_exit(Rappio.CURRENT)
@@ -185,7 +190,7 @@ class Rappio(object):
     def _application_should_be_closed(self, timeout):
         with self._run_and_ignore_connection_lost():
             self._ping_until_timeout(timeout)
-            raise TimeoutError('Application was not closed before timeout')
+            raise RappioTimeoutError('Application was not closed before timeout')
 
     @contextmanager
     def _run_and_ignore_connection_lost(self):

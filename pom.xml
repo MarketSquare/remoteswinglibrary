@@ -195,7 +195,10 @@
                   <goal>run</goal>
                 </goals>
               </execution>
-            </executions>        
+            </executions>
+            <configuration>
+                <logLevel>DEBUG</logLevel>
+            </configuration>        
         </plugin>
     </plugins>
       <resources>
