@@ -4,4 +4,8 @@ Library    Rappio
 *** Test Cases ***
 None Existing Application start fails before timeout
      [Timeout]    5 seconds
-     Run Keyword And Expect Error    *    Start Application    no-one    this command fails immediatly
+     Run Keyword And Expect Error    *    Start Application    no-one    this command fails immediatly   timeout=1
+
+Starting and stopping a java application
+     Start Application    myapp    java MyApp  timeout=1
+     System Exit          myapp
