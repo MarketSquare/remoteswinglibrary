@@ -141,13 +141,17 @@ class Rappio(object):
         """Detects new Rappio Java-agents in applications that are started without using the Start Application -keyword. The given alias is stored to identify the started application in Rappio.
         Subsequent keywords will be passed on to this application."""
         self.TIMEOUT = int(timeout)
-        if not REMOTE_AGENTS_LIST:
-            EXPECTED_AGENT_RECEIVED.clear()
-        EXPECTED_AGENT_RECEIVED.wait(timeout=self.TIMEOUT) # Ensure that a waited agent is the one we are receiving and not some older one
-        port = REMOTE_AGENTS_LIST.pop()
+        port = self._get_agent_port()
         self.REMOTES[alias] = [Remote('127.0.0.1:%s' %port), Remote('127.0.0.1:%s/rappioservices' % port)]
         Rappio.CURRENT = alias
         self.ROBOT_NAMESPACE_BRIDGE.re_import_rappio()
+
+    def _get_agent_port(self):
+        if not REMOTE_AGENTS_LIST:
+            EXPECTED_AGENT_RECEIVED.clear()
+        EXPECTED_AGENT_RECEIVED.wait(
+            timeout=self.TIMEOUT) # Ensure that a waited agent is the one we are receiving and not some older one
+        return REMOTE_AGENTS_LIST.pop()
 
     def _ping_until_timeout(self, timeout):
         timeout = float(timeout)
@@ -167,8 +171,14 @@ class Rappio(object):
             self._application_should_be_closed(timeout=timeout)
         except TimeoutError, t:
             logger.warn('Application is not closed before timeout - killing application')
+            self._take_screenshot()
             self.system_exit(Rappio.CURRENT)
             raise
+
+    def _take_screenshot(self):
+        filepath = 'screenshot%s.png' % time.time()
+        self._run_from_rappioservices(Rappio.CURRENT, 'takeScreenshot', filepath)
+        logger.info('<img src="%s"></img>' % filepath, html=True)
 
     def _application_should_be_closed(self, timeout):
         with self._run_and_ignore_connection_lost():
