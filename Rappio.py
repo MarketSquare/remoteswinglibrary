@@ -133,8 +133,8 @@ class Rappio(object):
             self.application_started(alias, timeout=timeout)
         except:
             result = self.PROCESS.terminate_process()
-            print "STDOUT: " + result.stdout
-            print "STDERR: " + result.stderr
+            logger.info('STDOUT: %s' % result.stdout)
+            logger.info('STDERR: %s' % result.stderr)
             raise
 
     def application_started(self, alias, timeout=60):
@@ -142,7 +142,8 @@ class Rappio(object):
         Subsequent keywords will be passed on to this application."""
         self.TIMEOUT = int(timeout)
         port = self._get_agent_port()
-        self.REMOTES[alias] = [Remote('127.0.0.1:%s' %port), Remote('127.0.0.1:%s/rappioservices' % port)]
+        url = '127.0.0.1:%s'%port
+        self.REMOTES[alias] = [Remote(url+e) for e in ['', '/rappioservices']]
         Rappio.CURRENT = alias
         self.ROBOT_NAMESPACE_BRIDGE.re_import_rappio()
 
