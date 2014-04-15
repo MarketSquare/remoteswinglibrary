@@ -1,0 +1,7 @@
+*** Settings ***
+Library    Rappio
+
+*** Test Cases ***
+None Existing Application start fails before timeout
+     [Timeout]    5 seconds
+     Run Keyword And Expect Error    *    Start Application    no-one    this command fails immediatly

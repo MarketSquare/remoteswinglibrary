@@ -1,3 +1,0 @@
-*** Test Cases ***
-World
-   Log    hello world
