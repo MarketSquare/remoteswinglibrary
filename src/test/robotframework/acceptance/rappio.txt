@@ -7,5 +7,5 @@ None Existing Application start fails before timeout
      Run Keyword And Expect Error    *    Start Application    no-one    this command fails immediatly   timeout=1
 
 Starting and stopping a java application
-     Start Application    myapp    java MyApp  timeout=1
+     Start Application    myapp    java org.robotframework.rappio.MyApp  timeout=1
      System Exit          myapp
