@@ -198,6 +198,9 @@
             </executions>
             <configuration>
                 <logLevel>DEBUG</logLevel>
+                <extraPathDirectories>
+                    <extraPathDirectory>target/rappio-1.0.jar</extraPathDirectory>
+                </extraPathDirectories>
             </configuration>        
         </plugin>
     </plugins>

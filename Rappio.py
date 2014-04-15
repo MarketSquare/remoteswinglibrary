@@ -137,6 +137,7 @@ class Rappio(object):
         try:
             self.application_started(alias, timeout=timeout)
         except:
+            raise
             result = self.PROCESS.wait_for_process(timeout=0.01)
             logger.info('STDOUT: %s' % result.stdout)
             logger.info('STDERR: %s' % result.stderr)
@@ -155,9 +156,8 @@ class Rappio(object):
     def _get_agent_port(self):
         if not REMOTE_AGENTS_LIST:
             EXPECTED_AGENT_RECEIVED.clear()
-        if None is EXPECTED_AGENT_RECEIVED.wait(
-            timeout=self.TIMEOUT): # Ensure that a waited agent is the one we are receiving and not some older one
-            raise RappioTimeoutError('No signal from agent before timeout')
+        EXPECTED_AGENT_RECEIVED.wait(
+            timeout=self.TIMEOUT) # Ensure that a waited agent is the one we are receiving and not some older one
         return REMOTE_AGENTS_LIST.pop()
 
     def _ping_until_timeout(self, timeout):
