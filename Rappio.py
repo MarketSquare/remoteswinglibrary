@@ -4,6 +4,7 @@ import os
 import threading
 import time
 import SocketServer
+from xmlrpclib import ProtocolError
 from robot.errors import HandlerExecutionFailed, TimeoutError
 from robot.libraries.Process import Process
 from robot.libraries.Remote import Remote
@@ -133,8 +134,8 @@ class Rappio(object):
             self.application_started(alias, timeout=timeout)
         except:
             result = self.PROCESS.terminate_process()
-            logger.info('STDOUT: %s' % result.stdout)
-            logger.info('STDERR: %s' % result.stderr)
+            logger.info('STDOUT: ' + result.stdout)
+            logger.info('STDERR: ' + result.stderr)
             raise
 
     def application_started(self, alias, timeout=60):
@@ -190,16 +191,19 @@ class Rappio(object):
     def _run_and_ignore_connection_lost(self):
         try:
             yield
-        except RuntimeError, r:
+        except RuntimeError, r: # disconnection from remotelibrary
             if 'Connection to remote server broken:' in r.message:
-                logger.debug('Connection died as expected')
+                logger.info('Connection died as expected')
                 return
             raise
-        except HandlerExecutionFailed, e:
+        except HandlerExecutionFailed, e: # disconnection from xmlrpc wrapped in robot keyword
             if 'Connection to remote server broken:' in e.message:
-                logger.debug('Connection died as expected')
+                logger.info('Connection died as expected')
                 return
             raise
+        except ProtocolError, r: # disconnection from xmlrpc in jython on some platforms
+            logger.info('Connection died as expected')
+            return
 
     def system_exit(self, alias, exit_code=1):
         with self._run_and_ignore_connection_lost():
