@@ -158,6 +158,8 @@ class Rappio(object):
             EXPECTED_AGENT_RECEIVED.clear()
         EXPECTED_AGENT_RECEIVED.wait(
             timeout=self.TIMEOUT) # Ensure that a waited agent is the one we are receiving and not some older one
+        if not EXPECTED_AGENT_RECEIVED.isSet():
+            raise RappioTimeoutError('Agent port not received before timeout')
         return REMOTE_AGENTS_LIST.pop()
 
     def _ping_until_timeout(self, timeout):
