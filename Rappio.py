@@ -21,7 +21,7 @@ class SimpleServer(SocketServer.BaseRequestHandler):
 
     def handle(self):
         data = ''.join(iter(self.read_socket, ''))
-        print '*DEBUG* Registered java rappio agent at port %s' % data.decode()
+        print '*DEBUG:%d* Registered java rappio agent at port %s' % (time.time()*1000, data.decode())
         REMOTE_AGENTS_LIST.append(data.decode())
         EXPECTED_AGENT_RECEIVED.set()
         self.request.sendall(data)
