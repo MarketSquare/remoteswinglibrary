@@ -137,7 +137,6 @@ class Rappio(object):
         try:
             self.application_started(alias, timeout=timeout)
         except:
-            raise
             result = self.PROCESS.wait_for_process(timeout=0.01)
             logger.info('STDOUT: %s' % result.stdout)
             logger.info('STDERR: %s' % result.stderr)
