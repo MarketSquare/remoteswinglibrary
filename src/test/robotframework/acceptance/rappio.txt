@@ -1,5 +1,6 @@
 *** Settings ***
 Library    Rappio
+Library    OperatingSystem
 
 *** Test Cases ***
 None Existing Application start fails before timeout
@@ -7,5 +8,6 @@ None Existing Application start fails before timeout
      Run Keyword And Expect Error    *    Start Application    no-one    this command fails immediatly   timeout=1
 
 Starting and stopping a java application
+     Set Environment Variable      CLASSPATH     target/test-classes
      Start Application    myapp    java org.robotframework.rappio.MyApp  timeout=5
      System Exit          myapp
