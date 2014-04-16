@@ -201,12 +201,12 @@
                 <extraPathDirectories>
                     <extraPathDirectory>target/rappio-1.0.jar</extraPathDirectory>
                 </extraPathDirectories>
-            </configuration>        
+            </configuration>
         </plugin>
     </plugins>
       <resources>
           <resource>
-              <directory>.</directory>
+              <directory>src/main/python</directory>
               <includes>
                   <include> *.py</include>
               </includes>
