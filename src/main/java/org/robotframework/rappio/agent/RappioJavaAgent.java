@@ -1,11 +1,14 @@
 package org.robotframework.rappio.agent;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.lang.instrument.Instrumentation;
 import java.net.Socket;
 import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.BasicConfigurator;
@@ -26,31 +29,46 @@ public class RappioJavaAgent {
 	private static PrintStream out = System.out;
 
 	public static void premain(String agentArgument, Instrumentation instrumentation){
-		try {
-            noOutput();
-            int port = getRappioPort(agentArgument);
-            RemoteServer server = new DaemonRemoteServer();
-            server.putLibrary("/RPC2", new SwingLibrary());
-            server.putLibrary("/rappioservices", new RappioServicesLibrary());
-            server.setPort(0);
-            server.setAllowStop(true);
-            server.start();
-            if(AppContext.getAppContext() == null){
-                SunToolkit.createNewAppContext();
+            try {
+                noOutput();
+                RemoteServer server = new DaemonRemoteServer();
+                server.putLibrary("/RPC2", new SwingLibrary());
+                server.putLibrary("/rappioservices", new RappioServicesLibrary());
+                server.setPort(0);
+                server.setAllowStop(true);
+                server.start();
+                if(AppContext.getAppContext() == null){
+                    SunToolkit.createNewAppContext();
+                }
+                Integer actualPort = server.getLocalPort();
+                notifyPort(actualPort, getRappioPort(agentArgument));
+            } catch (Exception e) {
+                    System.err.println("Error starting remote server");
+                    e.printStackTrace();
+            }finally{
+                    System.setOut(out);
             }
-            Integer actualPort = server.getLocalPort();
-            Socket echoSocket = new Socket(LOCALHOST, port);
-            PrintWriter outToServer = new PrintWriter(echoSocket.getOutputStream(), true);
-            outToServer.write(actualPort.toString());
-            outToServer.close();
-            echoSocket.close();
-		} catch (Exception e) {
-			System.err.println("Error starting remote server");
-			e.printStackTrace();
-		}finally{
-			System.setOut(out);
-		}
 	}
+        
+        private static void notifyPort(final Integer portToNotify, final Integer serverPort) {
+            Timer timer = new Timer("RobotJavaAgentPortNotifyingTimer", true);
+            timer.schedule(new TimerTask() {
+
+                @Override
+                public void run() {
+                    try {
+                        Socket echoSocket = new Socket(LOCALHOST, serverPort);
+                        PrintWriter outToServer = new PrintWriter(echoSocket.getOutputStream(), true);
+                        outToServer.write(portToNotify.toString());
+                        outToServer.close();
+                        echoSocket.close();
+                    } catch (IOException ex) {
+                        System.err.println("Socket connection error");
+                        ex.printStackTrace();
+                    }
+                }
+            }, 2000);
+        }
 
 	private static int getRappioPort(String agentArgument) {
 		try{
