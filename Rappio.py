@@ -139,8 +139,11 @@ class Rappio(object):
             self.application_started(alias, timeout=timeout)
         except:
             result = self.PROCESS.wait_for_process(timeout=0.01)
-            logger.info('STDOUT: %s' % result.stdout)
-            logger.info('STDERR: %s' % result.stderr)
+            if result:
+                logger.info('STDOUT: %s' % result.stdout)
+                logger.info('STDERR: %s' % result.stderr)
+            else:
+                print "Process is running, but application startup failed"
             raise
 
     def application_started(self, alias, timeout=60):
