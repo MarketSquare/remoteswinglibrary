@@ -1,5 +1,6 @@
 package org.robotframework.rappio.agent;
 
+import java.awt.Window;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -58,17 +59,19 @@ public class RappioJavaAgent {
                 @Override
                 public void run() {
                     try {
+                        while(Window.getWindows().length == 0) {
+                            Thread.sleep(100);
+                        }
                         Socket echoSocket = new Socket(LOCALHOST, serverPort);
                         PrintWriter outToServer = new PrintWriter(echoSocket.getOutputStream(), true);
                         outToServer.write(portToNotify.toString()+":"+getName());
                         outToServer.close();
                         echoSocket.close();
-                    } catch (IOException ex) {
-                        System.err.println("Socket connection error");
+                    } catch (Exception ex) {
                         ex.printStackTrace();
                     }
                 }
-            }, 2000);
+            }, 100);
         }
         
         private static String getName() {
