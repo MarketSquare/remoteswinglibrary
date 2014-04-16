@@ -153,9 +153,11 @@ class Rappio(object):
         self.TIMEOUT = int(timeout)
         port = self._get_agent_port()
         url = '127.0.0.1:%s'%port
+        logger.info('connecting to started application through port %s' % port)
         self.REMOTES[alias] = [Remote(url+e) for e in ['', '/rappioservices']]
         Rappio.CURRENT = alias
         self.ROBOT_NAMESPACE_BRIDGE.re_import_rappio()
+        logger.info('connected to started application through port %s' % port)
 
     def _get_agent_port(self):
         if not REMOTE_AGENTS_LIST:
@@ -175,7 +177,7 @@ class Rappio(object):
             time.sleep(delta)
 
     def _run_from_rappioservices(self, alias, kw, *args, **kwargs):
-        self.REMOTES[alias][1].run_keyword(kw, args, kwargs)
+        return self.REMOTES[alias][1].run_keyword(kw, args, kwargs)
 
     def ensure_application_should_close(self, timeout, kw, *args):
         with self._run_and_ignore_connection_lost():

@@ -7,6 +7,7 @@ import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 import javax.imageio.ImageIO;
 
 public class RappioServicesLibrary {
@@ -22,5 +23,17 @@ public class RappioServicesLibrary {
     public void takeScreenshot(String filepath) throws IOException, AWTException {
         BufferedImage image = new Robot().createScreenCapture(new Rectangle(Toolkit.getDefaultToolkit().getScreenSize()));
         ImageIO.write(image, "png", new File(filepath));
+    }
+    
+    public String getEnvironment() {
+        String envi = "";
+        for(final Map.Entry<String, String> entry : System.getenv().entrySet())
+        {
+            envi = envi + entry.getKey() + " : " + entry.getValue() + "\n";
+        }
+        for(final Map.Entry<Object,Object> property : System.getProperties().entrySet()){
+            envi = envi + property.getKey() + " : " + property.getValue() + "\n";
+        }
+        return envi;
     }
 }

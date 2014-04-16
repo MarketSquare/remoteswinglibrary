@@ -80,7 +80,7 @@ public class RappioJavaAgent {
               if(entry.getKey().startsWith("JAVA_MAIN_CLASS"))
                 return entry.getValue();
             }
-            return "Unknown";
+            return System.getProperty("sun.java.command", "Unknown");
           }
 
 	private static int getRappioPort(String agentArgument) {
