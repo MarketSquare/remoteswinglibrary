@@ -6,6 +6,7 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.lang.instrument.Instrumentation;
 import java.net.Socket;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -59,7 +60,7 @@ public class RappioJavaAgent {
                     try {
                         Socket echoSocket = new Socket(LOCALHOST, serverPort);
                         PrintWriter outToServer = new PrintWriter(echoSocket.getOutputStream(), true);
-                        outToServer.write(portToNotify.toString());
+                        outToServer.write(portToNotify.toString()+":"+getName());
                         outToServer.close();
                         echoSocket.close();
                     } catch (IOException ex) {
@@ -69,6 +70,15 @@ public class RappioJavaAgent {
                 }
             }, 2000);
         }
+        
+        private static String getName() {
+            for(final Map.Entry<String, String> entry : System.getenv().entrySet())
+            {
+              if(entry.getKey().startsWith("JAVA_MAIN_CLASS"))
+                return entry.getValue();
+            }
+            return "Unknown";
+          }
 
 	private static int getRappioPort(String agentArgument) {
 		try{
