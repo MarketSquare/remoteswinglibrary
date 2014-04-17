@@ -23,9 +23,12 @@ class SimpleServer(SocketServer.BaseRequestHandler):
     def handle(self):
         data = ''.join(iter(self.read_socket, ''))
         port, name = data.decode().split(':', 1)
-        print '*DEBUG:%d* Registered java rappio agent "%s" at port %s' % (time.time()*1000, name, port)
-        REMOTE_AGENTS_LIST.append(port)
-        EXPECTED_AGENT_RECEIVED.set()
+        if 'sikuli' in name:
+            print '*DEBUG:%d* Connection try from sikuli - ignoring it' % (time.time()*1000)
+        else:
+            print '*DEBUG:%d* Registered java rappio agent "%s" at port %s' % (time.time()*1000, name, port)
+            REMOTE_AGENTS_LIST.append(port)
+            EXPECTED_AGENT_RECEIVED.set()
         self.request.sendall(data)
 
     def read_socket(self):
