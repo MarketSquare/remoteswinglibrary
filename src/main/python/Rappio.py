@@ -156,8 +156,13 @@ class Rappio(object):
         port = self._get_agent_port()
         url = '127.0.0.1:%s'%port
         logger.info('connecting to started application through port %s' % port)
-        self.REMOTES[alias] = [Remote(url+e) for e in ['', '/rappioservices']]
+        swinglibrary = Remote(url)
+        logger.debug('remote swinglibrary instantiated')
+        services = Remote(url+'/rappioservices')
+        logger.debug('remote rappioservices instantiated')
+        self.REMOTES[alias] = [swinglibrary, services]
         Rappio.CURRENT = alias
+        logger.debug('modifying robot framework namespace')
         self.ROBOT_NAMESPACE_BRIDGE.re_import_rappio()
         logger.info('connected to started application through port %s' % port)
 
