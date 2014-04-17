@@ -149,7 +149,7 @@ class Rappio(object):
                 print "Process is running, but application startup failed"
             raise
 
-    def application_started(self, alias, timeout=60):
+    def application_started(self, alias, timeout=60, name=None):
         """Detects new Rappio Java-agents in applications that are started without using the Start Application -keyword. The given alias is stored to identify the started application in Rappio.
         Subsequent keywords will be passed on to this application."""
         self.TIMEOUT = int(timeout)

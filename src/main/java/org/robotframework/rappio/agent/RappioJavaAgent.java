@@ -75,12 +75,15 @@ public class RappioJavaAgent {
         }
         
         private static String getName() {
+            String name = System.getProperty("sun.java.command");
+            if(name != null)
+                return name;
             for(final Map.Entry<String, String> entry : System.getenv().entrySet())
             {
               if(entry.getKey().startsWith("JAVA_MAIN_CLASS"))
                 return entry.getValue();
             }
-            return System.getProperty("sun.java.command", "Unknown");
+            return "Unknown";
           }
 
 	private static int getRappioPort(String agentArgument) {

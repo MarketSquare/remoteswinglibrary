@@ -17,8 +17,24 @@ Starting and stopping application with main window
      System Exit          myapp2
 
 Connecting to a started application
-     Start Process   java org.robotframework.rappio.MySwingApp   shell=True
+     ${handle}=  Start Process   java org.robotframework.rappio.MySwingApp   shell=True
      Application Started     myjava
-     Process Should Be Running
-     System Exit    myjava
-     Process Should Be Stopped
+     Exit and check process   ${handle}    myjava
+
+Connecting to a specific application
+     ${handle1}=  Start Process   java org.robotframework.rappio.MySwingApp one    shell=True
+     ${handle2}=  Start Process   java org.robotframework.rappio.MySwingApp two    shell=True
+     ${handle3}=  Start Process   java org.robotframework.rappio.MySwingApp three  shell=True
+     Application Started    three    name=*three*
+     Application Started    one      name=*one*
+     Application Started    two      name=*two*
+     Exit and check process    ${handle2}   two
+     Exit and check process    ${handle3}   three
+     Exit and check process    ${handle1}   one
+
+*** Keywords ***
+Exit and check process
+   [Arguments]    ${handler}   ${alias}
+   Process Should Be Running    ${handler}
+   System Exit   ${alias}
+   Process Should Be Stopped    ${handler}
