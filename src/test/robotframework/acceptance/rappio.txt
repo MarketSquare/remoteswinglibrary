@@ -1,6 +1,7 @@
 *** Settings ***
 Library    Rappio
 Library    OperatingSystem
+Library    Process
 Suite setup    Set Environment Variable      CLASSPATH     target/test-classes
 
 *** Test Cases ***
@@ -14,3 +15,10 @@ Starting a java application without main window fails
 Starting and stopping application with main window
      Start Application    myapp2    java org.robotframework.rappio.MySwingApp  timeout=5
      System Exit          myapp2
+
+Connecting to a started application
+     Start Process   java org.robotframework.rappio.MySwingApp   shell=True
+     Application Started     myjava
+     Process Should Be Running
+     System Exit    myjava
+     Process Should Be Stopped

@@ -4,9 +4,8 @@ import os
 import threading
 import time
 import SocketServer
-import xmlrpclib
 from xmlrpclib import ProtocolError
-from robot.errors import HandlerExecutionFailed, TimeoutError
+from robot.errors import HandlerExecutionFailed
 from robot.libraries.Process import Process
 from robot.libraries.Remote import Remote
 from robot.running import EXECUTION_CONTEXTS
