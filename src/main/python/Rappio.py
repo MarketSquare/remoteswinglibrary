@@ -22,12 +22,9 @@ class SimpleServer(SocketServer.BaseRequestHandler):
     def handle(self):
         data = ''.join(iter(self.read_socket, ''))
         port, name = data.decode().split(':', 1)
-        if 'sikuli' in name:
-            print '*DEBUG:%d* Connection try from sikuli - ignoring it' % (time.time()*1000)
-        else:
-            print '*DEBUG:%d* Registered java rappio agent "%s" at port %s' % (time.time()*1000, name, port)
-            REMOTE_AGENTS_LIST.append(port)
-            EXPECTED_AGENT_RECEIVED.set()
+        print '*DEBUG:%d* Registered java rappio agent "%s" at port %s' % (time.time()*1000, name, port)
+        REMOTE_AGENTS_LIST.append((port, name))
+        EXPECTED_AGENT_RECEIVED.set()
         self.request.sendall(data)
 
     def read_socket(self):
@@ -134,12 +131,12 @@ class Rappio(object):
         os.environ['JAVA_TOOL_OPTIONS'] = agent_command
         logger.info(agent_command)
 
-    def start_application(self, alias, command, timeout=60):
+    def start_application(self, alias, command, timeout=60, name_contains=None):
         """Starts the process in the `command` parameter  on the host operating system. The given alias is stored to identify the started application in Rappio."""
         EXPECTED_AGENT_RECEIVED.clear() # We are going to wait for a specific agent
         self.PROCESS.start_process(command, alias=alias, shell=True)
         try:
-            self.application_started(alias, timeout=timeout)
+            self.application_started(alias, timeout=timeout, name_contains=name_contains)
         except:
             result = self.PROCESS.wait_for_process(timeout=0.01)
             if result:
@@ -149,11 +146,11 @@ class Rappio(object):
                 print "Process is running, but application startup failed"
             raise
 
-    def application_started(self, alias, timeout=60, name=None):
+    def application_started(self, alias, timeout=60, name_contains=None):
         """Detects new Rappio Java-agents in applications that are started without using the Start Application -keyword. The given alias is stored to identify the started application in Rappio.
         Subsequent keywords will be passed on to this application."""
         self.TIMEOUT = int(timeout)
-        port = self._get_agent_port()
+        port = self._get_agent_port(name_contains)
         url = '127.0.0.1:%s'%port
         logger.info('connecting to started application through port %s' % port)
         swinglibrary = Remote(url)
@@ -166,14 +163,19 @@ class Rappio(object):
         self.ROBOT_NAMESPACE_BRIDGE.re_import_rappio()
         logger.info('connected to started application through port %s' % port)
 
-    def _get_agent_port(self):
-        if not REMOTE_AGENTS_LIST:
-            EXPECTED_AGENT_RECEIVED.clear()
-        EXPECTED_AGENT_RECEIVED.wait(
-            timeout=self.TIMEOUT) # Ensure that a waited agent is the one we are receiving and not some older one
-        if not EXPECTED_AGENT_RECEIVED.isSet():
-            raise RappioTimeoutError('Agent port not received before timeout')
-        return REMOTE_AGENTS_LIST.pop()
+    def _get_agent_port(self, name_pattern):
+        while True:
+            if not REMOTE_AGENTS_LIST:
+                EXPECTED_AGENT_RECEIVED.clear()
+            EXPECTED_AGENT_RECEIVED.wait(
+                timeout=self.TIMEOUT) # Ensure that a waited agent is the one we are receiving and not some older one
+            if not EXPECTED_AGENT_RECEIVED.isSet():
+                raise RappioTimeoutError('Agent port not received before timeout')
+            for port, name in reversed(REMOTE_AGENTS_LIST):
+                if name_pattern is None or name_pattern in name:
+                    REMOTE_AGENTS_LIST.remove((port, name))
+                    return port
+            time.sleep(0.1)
 
     def _ping_until_timeout(self, timeout):
         timeout = float(timeout)

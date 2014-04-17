@@ -22,12 +22,13 @@ Connecting to a started application
      Exit and check process   ${handle}    myjava
 
 Connecting to a specific application
+     [Timeout]    10 seconds
      ${handle1}=  Start Process   java org.robotframework.rappio.MySwingApp one    shell=True
      ${handle2}=  Start Process   java org.robotframework.rappio.MySwingApp two    shell=True
      ${handle3}=  Start Process   java org.robotframework.rappio.MySwingApp three  shell=True
-     Application Started    three    name=*three*
-     Application Started    one      name=*one*
-     Application Started    two      name=*two*
+     Application Started    three    name_contains=three
+     Application Started    one      name_contains=one
+     Application Started    two      name_contains=two
      Exit and check process    ${handle2}   two
      Exit and check process    ${handle3}   three
      Exit and check process    ${handle1}   one
