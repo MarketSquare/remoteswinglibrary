@@ -33,9 +33,22 @@ Connecting to a specific application
      Exit and check process    ${handle3}   three
      Exit and check process    ${handle1}   one
 
+Ensure application closing
+     Start Application    myapp    java org.robotframework.rappio.MySwingApp  timeout=5
+     Ensure Application Should Close    5   My Closing Keyword    myapp
+
+Ensure application closing when timeout
+     Start Application    myapp    java org.robotframework.rappio.MySwingApp  timeout=5
+     Run Keyword and expect error  *Application was not closed before timeout*  Ensure Application Should Close    1   No Operation
+
 *** Keywords ***
 Exit and check process
    [Arguments]    ${handler}   ${alias}
    Process Should Be Running    ${handler}
    System Exit   ${alias}
    Process Should Be Stopped    ${handler}
+
+My Closing Keyword
+   [Arguments]    ${alias}
+   Log     something plaah
+   System Exit   ${alias}
