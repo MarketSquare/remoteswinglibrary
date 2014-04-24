@@ -59,18 +59,27 @@ public class RappioJavaAgent {
                 @Override
                 public void run() {
                     try {
-                        while(Window.getWindows().length == 0) {
-                            Thread.sleep(100);
-                        }
-                        Socket echoSocket = new Socket(LOCALHOST, serverPort);
-                        PrintWriter outToServer = new PrintWriter(echoSocket.getOutputStream(), true);
-                        outToServer.write(portToNotify.toString()+":"+getName());
-                        outToServer.close();
-                        echoSocket.close();
+                        waitForSwingComponent();
+                        reportPort();
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
                 }
+                
+                private void waitForSwingComponent() throws InterruptedException {
+                    while(Window.getWindows().length == 0) {
+                        Thread.sleep(100);
+                    }
+                }
+                
+                private void reportPort() throws IOException {
+                    Socket echoSocket = new Socket(LOCALHOST, serverPort);
+                    PrintWriter outToServer = new PrintWriter(echoSocket.getOutputStream(), true);
+                    outToServer.write(portToNotify.toString()+":"+getName());
+                    outToServer.close();
+                    echoSocket.close();
+                }
+
             }, 100);
         }
         
