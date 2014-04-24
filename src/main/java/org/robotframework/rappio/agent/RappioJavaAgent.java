@@ -46,7 +46,6 @@ public class RappioJavaAgent {
                 notifyPort(actualPort, getRappioPort(agentArgument));
             } catch (Exception e) {
                     System.err.println("Error starting remote server");
-                    e.printStackTrace();
             }finally{
                     System.setOut(out);
             }
@@ -111,8 +110,9 @@ public class RappioJavaAgent {
 		root.setLevel(Level.OFF);
 		root.addAppender(new NullAppender());
 		LogFactory.releaseAll();
-		LogFactory.getFactory().setAttribute("org.apache.commons.logging.Log",
-				"org.apache.commons.logging.impl.Log4JLogger");
+		LogFactory.getFactory().setAttribute(
+                        "org.apache.commons.logging.Log",
+			"org.apache.commons.logging.impl.Log4JLogger");
 		Properties p = new Properties();
 		p.setProperty("org.eclipse.jetty.LEVEL", "WARN");
 		org.eclipse.jetty.util.log.StdErrLog.setProperties(p);
