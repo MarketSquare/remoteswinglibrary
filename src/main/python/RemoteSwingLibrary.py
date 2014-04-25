@@ -98,7 +98,7 @@ class RemoteSwingLibrary(object):
     | Library | RemoteSwingLibrary | 8181 |
     """
 
-    ROBOT_LIBRARY_SCOPE = 'SUITE'
+    ROBOT_LIBRARY_SCOPE = 'GLOBAL'
     KEYWORDS = ['system_exit', 'start_application', 'application_started', 'switch_to_application',
                 'ensure_application_should_close']
     REMOTES = {}
