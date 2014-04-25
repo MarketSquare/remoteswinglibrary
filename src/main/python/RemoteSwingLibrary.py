@@ -96,8 +96,15 @@ class RemoteSwingLibrary(object):
     See https://github.com/robotframework/SwingLibrary for details about SwingLibrary keywords revealed through this library.
 
     Examples:
-    | Library | RemoteSwingLibrary |      |
-    | Library | RemoteSwingLibrary | 8181 |
+    | * Settings * |
+    | Library | RemoteSwingLibrary |
+    | * Test Cases * |
+    | Testing java application |
+    | | Start Application | myjavaapp | java -jar myjava.jar |
+    | | Select Window  | My App |
+    | | Ensure Application Should Close | 5 | Push Button | Exit |
+
+
     """
 
     ROBOT_LIBRARY_SCOPE = 'GLOBAL'
@@ -138,7 +145,14 @@ class RemoteSwingLibrary(object):
 
     def start_application(self, alias, command, timeout=60, name_contains=None):
         """Starts the process in the `command` parameter  on the host operating system.
-        The given alias is stored to identify the started application in RemoteSwingLibrary."""
+        The given alias is stored to identify the started application in RemoteSwingLibrary.
+
+        timeout (default 60) is timeout in seconds.
+        name_contains is a text that must be part of the name of the java process that we are connecting to.
+        name_contains helps in situations where multiple java-processes are started.
+        To see the name of the connecting java agents run tests with --loglevel DEBUG.
+
+        """
         EXPECTED_AGENT_RECEIVED.clear() # We are going to wait for a specific agent
         self.PROCESS.start_process(command, alias=alias, shell=True)
         try:
@@ -201,6 +215,14 @@ class RemoteSwingLibrary(object):
 
     @run_keyword_variant(resolve=1)
     def ensure_application_should_close(self, timeout, kw, *args):
+        """ Runs the given keyword and waits until timeout for the application to close - the application is the current
+        active application.
+        If the application doesn't close, the keyword will take a screenshot and close the application
+        and after that it will fail.
+        In many cases calling the keyword that will close the application under test brakes the remote connection.
+        This exception is ignored as it is expected by this keyword.
+        Other exceptions will fail this keyword as expected.
+        """
         with self._run_and_ignore_connection_lost():
             BuiltIn().run_keyword(kw, *args)
         try:
@@ -248,6 +270,9 @@ class RemoteSwingLibrary(object):
             return
 
     def system_exit(self, alias, exit_code=1):
+        """ Uses the RemoteSwingLibrary java agent to call system exit for the specific java process with the given
+        alias.
+        """
         with self._run_and_ignore_connection_lost():
             self._run_from_services(alias, 'systemExit', exit_code)
 
