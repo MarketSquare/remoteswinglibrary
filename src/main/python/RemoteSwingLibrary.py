@@ -13,7 +13,7 @@ from robot.libraries.Remote import Remote
 from robot.running import EXECUTION_CONTEXTS
 from robot.running.namespace import IMPORTER
 from robot.running.testlibraries import TestLibrary
-from robot.libraries.BuiltIn import BuiltIn
+from robot.libraries.BuiltIn import BuiltIn, run_keyword_variant
 from robot.api import logger
 
 REMOTE_AGENTS_LIST = []
@@ -161,15 +161,18 @@ class RemoteSwingLibrary(object):
         port = self._get_agent_port(name_contains)
         url = '127.0.0.1:%s'%port
         logger.info('connecting to started application through port %s' % port)
-        swinglibrary = Remote(url)
-        logger.debug('remote swinglibrary instantiated')
-        services = Remote(url+'/services')
-        logger.debug('remote services instantiated')
-        self.REMOTES[alias] = [swinglibrary, services]
+        self._initialize_remote_libraries(alias, url)
         RemoteSwingLibrary.CURRENT = alias
         logger.debug('modifying robot framework namespace')
         self.ROBOT_NAMESPACE_BRIDGE.re_import_remoteswinglibrary()
         logger.info('connected to started application through port %s' % port)
+
+    def _initialize_remote_libraries(self, alias, url):
+        swinglibrary = Remote(url)
+        logger.debug('remote swinglibrary instantiated')
+        services = Remote(url + '/services')
+        logger.debug('remote services instantiated')
+        self.REMOTES[alias] = [swinglibrary, services]
 
     def _get_agent_port(self, name_pattern):
         while True:
@@ -196,6 +199,7 @@ class RemoteSwingLibrary(object):
     def _run_from_services(self, alias, kw, *args, **kwargs):
         return self.REMOTES[alias][1].run_keyword(kw, args, kwargs)
 
+    @run_keyword_variant(resolve=1)
     def ensure_application_should_close(self, timeout, kw, *args):
         with self._run_and_ignore_connection_lost():
             BuiltIn().run_keyword(kw, *args)
