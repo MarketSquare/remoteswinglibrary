@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.robotframework.rappio;
+package org.robotframework.remoteswinglibrary;
 
 
 public class MyApp {

@@ -2,14 +2,14 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>org.robotframework.rappio</groupId>
-  <artifactId>rappio</artifactId>
+  <groupId>org.robotframework.remoteswinglibrary</groupId>
+  <artifactId>remoteswinglibrary</artifactId>
   <version>1.0</version>
   <packaging>jar</packaging>
 
-  <name>robotframework-rappio</name>
+  <name>robotframework-remoteswinglibrary</name>
   <description>A Robot Framework library + Java-agent for for Swing UI testing</description>
-  <url>https://github.com/robotframework/rappio</url>
+  <url>https://github.com/robotframework/remoteswinglibrary</url>
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>
@@ -18,8 +18,8 @@
     </license>
   </licenses>
   <scm>
-    <url>https://github.com/robotframework/rappio</url>
-    <connection>scm:git:https://github.com/robotframework/rappio</connection>
+    <url>https://github.com/robotframework/remoteswinglibrary</url>
+    <connection>scm:git:https://github.com/robotframework/remoteswinglibrary</connection>
   </scm>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -115,19 +115,19 @@
               <rules>
                 <rule>
                   <pattern>com.thoughtworks.**</pattern>
-                  <result>org.robotframework.rappio.@0</result>
+                  <result>org.robotframework.remoteswinglibrary.@0</result>
                 </rule>
                 <rule>
                   <pattern>edu.emory.**</pattern>
-                  <result>org.robotframework.rappio.@0</result>
+                  <result>org.robotframework.remoteswinglibrary.@0</result>
                 </rule>
                 <rule>
                   <pattern>org.aopalliance.**</pattern>
-                  <result>org.robotframework.rappio.@0</result>
+                  <result>org.robotframework.remoteswinglibrary.@0</result>
                 </rule>
                 <rule>
                   <pattern>org.laughingpanda.**</pattern>
-                  <result>org.robotframework.rappio.@0</result>
+                  <result>org.robotframework.remoteswinglibrary.@0</result>
                 </rule>
                 <rule>
                   <pattern>org.apache.log4j.**</pattern>
@@ -135,15 +135,15 @@
                 </rule>
                 <rule>
                   <pattern>org.apache.**</pattern>
-                  <result>org.robotframework.rappio.@0</result>
+                  <result>org.robotframework.remoteswinglibrary.@0</result>
                 </rule>
                 <rule>
                   <pattern>org.springframework.**</pattern>
-                  <result>org.robotframework.rappio.@0</result>
+                  <result>org.robotframework.remoteswinglibrary.@0</result>
                 </rule>
                 <rule>
                   <pattern>javax.servlet.**</pattern>
-                  <result>org.robotframework.rappio.@0</result>
+                  <result>org.robotframework.remoteswinglibrary.@0</result>
                 </rule>
                 <keep>
                   <pattern>org.apache.log4j.**</pattern>
@@ -173,7 +173,7 @@
               <classesDirectory>${project.build.directory}/jarjarred</classesDirectory>
               <archive>
                 <manifestEntries>
-                  <Premain-Class>org.robotframework.rappio.agent.RappioJavaAgent</Premain-Class>
+                  <Premain-Class>org.robotframework.remoteswinglibrary.agent.JavaAgent</Premain-Class>
                 </manifestEntries>
               </archive>
             </configuration>
@@ -199,7 +199,7 @@
             <configuration>
                 <logLevel>DEBUG</logLevel>
                 <extraPathDirectories>
-                    <extraPathDirectory>target/rappio-1.0.jar</extraPathDirectory>
+                    <extraPathDirectory>target/remoteswinglibrary-1.0.jar</extraPathDirectory>
                 </extraPathDirectories>
             </configuration>
         </plugin>

@@ -1,5 +1,5 @@
 *** Settings ***
-Library    Rappio
+Library    RemoteSwingLibrary
 Library    OperatingSystem
 Library    Process
 Suite setup    Set Environment Variable      CLASSPATH     target/test-classes
@@ -10,19 +10,19 @@ None Existing Application start fails before timeout
      Run Keyword And Expect Error    *    Start Application    no-one    this command fails immediatly   timeout=1
 
 Starting and stopping application with main window
-     Start Application    myapp2    java org.robotframework.rappio.MySwingApp  timeout=5
+     Start Application    myapp2    java org.robotframework.remoteswinglibrary.MySwingApp  timeout=5
      System Exit          myapp2
 
 Connecting to a started application
-     ${handle}=  Start Process   java org.robotframework.rappio.MySwingApp   shell=True
+     ${handle}=  Start Process   java org.robotframework.remoteswinglibrary.MySwingApp   shell=True
      Application Started     myjava
      Exit and check process   ${handle}    myjava
 
 Connecting to a specific application
      [Timeout]    10 seconds
-     ${handle1}=  Start Process   java org.robotframework.rappio.MySwingApp one    shell=True
-     ${handle2}=  Start Process   java org.robotframework.rappio.MySwingApp two    shell=True
-     ${handle3}=  Start Process   java org.robotframework.rappio.MySwingApp three  shell=True
+     ${handle1}=  Start Process   java org.robotframework.remoteswinglibrary.MySwingApp one    shell=True
+     ${handle2}=  Start Process   java org.robotframework.remoteswinglibrary.MySwingApp two    shell=True
+     ${handle3}=  Start Process   java org.robotframework.remoteswinglibrary.MySwingApp three  shell=True
      Application Started    three    name_contains=three
      Application Started    one      name_contains=one
      Application Started    two      name_contains=two
@@ -31,11 +31,11 @@ Connecting to a specific application
      Exit and check process    ${handle1}   one
 
 Ensure application closing
-     Start Application    myapp    java org.robotframework.rappio.MySwingApp  timeout=5
+     Start Application    myapp    java org.robotframework.remoteswinglibrary.MySwingApp  timeout=5
      Ensure Application Should Close    5   My Closing Keyword    myapp
 
 Ensure application closing when timeout
-     Start Application    myapp    java org.robotframework.rappio.MySwingApp  timeout=5
+     Start Application    myapp    java org.robotframework.remoteswinglibrary.MySwingApp  timeout=5
      Run Keyword and expect error  *Application was not closed before timeout*  Ensure Application Should Close    1   No Operation
 
 *** Keywords ***

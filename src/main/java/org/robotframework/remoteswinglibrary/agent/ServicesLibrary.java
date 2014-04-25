@@ -1,4 +1,4 @@
-package org.robotframework.rappio.agent;
+package org.robotframework.remoteswinglibrary.agent;
 
 import java.awt.AWTException;
 import java.awt.Rectangle;
@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.Map;
 import javax.imageio.ImageIO;
 
-public class RappioServicesLibrary {
+public class ServicesLibrary {
 
     public void systemExit(int exitCode) {
         System.exit(exitCode);

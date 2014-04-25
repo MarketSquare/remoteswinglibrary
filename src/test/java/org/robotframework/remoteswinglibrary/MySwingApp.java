@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.robotframework.rappio;
+package org.robotframework.remoteswinglibrary;
 
 import java.awt.BorderLayout;
 import java.awt.Label;

@@ -1,4 +1,4 @@
-package org.robotframework.rappio.agent;
+package org.robotframework.remoteswinglibrary.agent;
 
 import java.awt.Window;
 import java.io.IOException;
@@ -17,17 +17,17 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.varia.NullAppender;
-import org.robotframework.rappio.remote.DaemonRemoteServer;
+import org.robotframework.remoteswinglibrary.remote.DaemonRemoteServer;
 import org.robotframework.remoteserver.RemoteServer;
 import org.robotframework.swing.SwingLibrary;
 
 import sun.awt.AppContext;
 import sun.awt.SunToolkit;
 
-public class RappioJavaAgent {
+public class JavaAgent {
 
 	private static final String LOCALHOST = "127.0.0.1";
-	private static final int DEFAULT_RAPPIO_PORT = 8181;
+	private static final int DEFAULT_REMOTESWINGLIBRARY_PORT = 8181;
 	private static PrintStream out = System.out;
 
 	public static void premain(String agentArgument, Instrumentation instrumentation){
@@ -35,7 +35,7 @@ public class RappioJavaAgent {
                 noOutput();
                 RemoteServer server = new DaemonRemoteServer();
                 server.putLibrary("/RPC2", new SwingLibrary());
-                server.putLibrary("/rappioservices", new RappioServicesLibrary());
+                server.putLibrary("/services", new ServicesLibrary());
                 server.setPort(0);
                 server.setAllowStop(true);
                 server.start();
@@ -43,7 +43,7 @@ public class RappioJavaAgent {
                     SunToolkit.createNewAppContext();
                 }
                 Integer actualPort = server.getLocalPort();
-                notifyPort(actualPort, getRappioPort(agentArgument));
+                notifyPort(actualPort, getRemoteSwingLibraryPort(agentArgument));
             } catch (Exception e) {
                     System.err.println("Error starting remote server");
             }finally{
@@ -71,11 +71,11 @@ public class RappioJavaAgent {
             return "Unknown";
           }
 
-	private static int getRappioPort(String agentArgument) {
+	private static int getRemoteSwingLibraryPort(String agentArgument) {
 		try{
 			return Integer.parseInt(agentArgument);
 		}catch(Exception e){
-			return DEFAULT_RAPPIO_PORT;
+			return DEFAULT_REMOTESWINGLIBRARY_PORT;
 		}
 	}
 

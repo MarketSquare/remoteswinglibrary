@@ -24,7 +24,7 @@ class SimpleServer(SocketServer.BaseRequestHandler):
     def handle(self):
         data = ''.join(iter(self.read_socket, ''))
         port, name = data.decode().split(':', 1)
-        print '*DEBUG:%d* Registered java rappio agent "%s" at port %s' % (time.time()*1000, name, port)
+        print '*DEBUG:%d* Registered java remoteswinglibrary agent "%s" at port %s' % (time.time()*1000, name, port)
         REMOTE_AGENTS_LIST.append((port, name))
         EXPECTED_AGENT_RECEIVED.set()
         self.request.sendall(data)
@@ -66,8 +66,8 @@ class OldRobotImporterWrapper(_RobotImporterWrapper):
 class RobotLibraryImporter(object):
     """Class for manipulating Robot Framework library imports during runtime"""
 
-    def re_import_rappio(self):
-        name = 'Rappio'
+    def re_import_remoteswinglibrary(self):
+        name = 'RemoteSwingLibrary'
         self._remove_lib_from_current_namespace(name)
         self._import_wrapper().remove_library(name, [])
         BuiltIn().import_library(name)
@@ -83,18 +83,19 @@ class RobotLibraryImporter(object):
             del(testlibs[name])
 
 
-class RappioTimeoutError(RuntimeError):
+class RemoteSwingLibraryTimeoutError(RuntimeError):
     pass
 
 
-class Rappio(object):
+class RemoteSwingLibrary(object):
     """Robot Framework library leveraging Java-agents to run SwingLibrary keywords on Java-processes. The library contains
     a simple socket server to communicate with Java agents. When taking the library into use, you can specify the port this
-    server uses. Providing the port is optional. If you do not provide one, Rappio will ask the OS for an unused port.
+    server uses. Providing the port is optional. If you do not provide one,
+    RemoteSwingLibrary will ask the OS for an unused port.
 
     Examples:
-    | Library | Rappio |      |
-    | Library | Rappio | 8181 |
+    | Library | RemoteSwingLibrary |      |
+    | Library | RemoteSwingLibrary | 8181 |
     """
 
     ROBOT_LIBRARY_SCOPE = 'SUITE'
@@ -109,8 +110,8 @@ class Rappio(object):
     AGENT_PATH = os.path.abspath(os.path.dirname(__file__))
 
     def __init__(self, port=None):
-        if Rappio.PORT is None:
-            Rappio.PORT = self._start_port_server(port or 0)
+        if RemoteSwingLibrary.PORT is None:
+            RemoteSwingLibrary.PORT = self._start_port_server(port or 0)
         self._set_env()
 
     @property
@@ -129,12 +130,13 @@ class Rappio(object):
         return server.server_address[1]
 
     def _set_env(self):
-        agent_command = '-javaagent:%s=%s' % (Rappio.AGENT_PATH, Rappio.PORT)
+        agent_command = '-javaagent:%s=%s' % (RemoteSwingLibrary.AGENT_PATH, RemoteSwingLibrary.PORT)
         os.environ['JAVA_TOOL_OPTIONS'] = agent_command
         logger.info(agent_command)
 
     def start_application(self, alias, command, timeout=60, name_contains=None):
-        """Starts the process in the `command` parameter  on the host operating system. The given alias is stored to identify the started application in Rappio."""
+        """Starts the process in the `command` parameter  on the host operating system.
+        The given alias is stored to identify the started application in RemoteSwingLibrary."""
         EXPECTED_AGENT_RECEIVED.clear() # We are going to wait for a specific agent
         self.PROCESS.start_process(command, alias=alias, shell=True)
         try:
@@ -149,7 +151,9 @@ class Rappio(object):
             raise
 
     def application_started(self, alias, timeout=60, name_contains=None):
-        """Detects new Rappio Java-agents in applications that are started without using the Start Application -keyword. The given alias is stored to identify the started application in Rappio.
+        """Detects new RemoteSwingLibrary Java-agents in applications that are started without
+        using the Start Application -keyword. The given alias is stored to identify the
+        started application in RemoteSwingLibrary.
         Subsequent keywords will be passed on to this application."""
         self.TIMEOUT = int(timeout)
         port = self._get_agent_port(name_contains)
@@ -157,12 +161,12 @@ class Rappio(object):
         logger.info('connecting to started application through port %s' % port)
         swinglibrary = Remote(url)
         logger.debug('remote swinglibrary instantiated')
-        services = Remote(url+'/rappioservices')
-        logger.debug('remote rappioservices instantiated')
+        services = Remote(url+'/services')
+        logger.debug('remote services instantiated')
         self.REMOTES[alias] = [swinglibrary, services]
-        Rappio.CURRENT = alias
+        RemoteSwingLibrary.CURRENT = alias
         logger.debug('modifying robot framework namespace')
-        self.ROBOT_NAMESPACE_BRIDGE.re_import_rappio()
+        self.ROBOT_NAMESPACE_BRIDGE.re_import_remoteswinglibrary()
         logger.info('connected to started application through port %s' % port)
 
     def _get_agent_port(self, name_pattern):
@@ -172,7 +176,7 @@ class Rappio(object):
             EXPECTED_AGENT_RECEIVED.wait(
                 timeout=self.TIMEOUT) # Ensure that a waited agent is the one we are receiving and not some older one
             if not EXPECTED_AGENT_RECEIVED.isSet():
-                raise RappioTimeoutError('Agent port not received before timeout')
+                raise RemoteSwingLibraryTimeoutError('Agent port not received before timeout')
             for port, name in reversed(REMOTE_AGENTS_LIST):
                 if name_pattern is None or name_pattern in name:
                     REMOTE_AGENTS_LIST.remove((port, name))
@@ -184,10 +188,10 @@ class Rappio(object):
         delta = min(0.1, timeout)
         endtime = timeout+time.time()
         while endtime > time.time():
-            self._run_from_rappioservices(Rappio.CURRENT, 'ping')
+            self._run_from_services(RemoteSwingLibrary.CURRENT, 'ping')
             time.sleep(delta)
 
-    def _run_from_rappioservices(self, alias, kw, *args, **kwargs):
+    def _run_from_services(self, alias, kw, *args, **kwargs):
         return self.REMOTES[alias][1].run_keyword(kw, args, kwargs)
 
     def ensure_application_should_close(self, timeout, kw, *args):
@@ -195,16 +199,16 @@ class Rappio(object):
             BuiltIn().run_keyword(kw, *args)
         try:
             self._application_should_be_closed(timeout=timeout)
-        except RappioTimeoutError, t:
+        except RemoteSwingLibraryTimeoutError, t:
             logger.warn('Application is not closed before timeout - killing application')
             self._take_screenshot()
-            self.system_exit(Rappio.CURRENT)
+            self.system_exit(RemoteSwingLibrary.CURRENT)
             raise
 
     def _take_screenshot(self):
         logdir = self._get_log_dir()
         filepath = os.path.join(logdir, 'remoteswinglibrary-screenshot%s.png' % long(time.time()*1000))
-        self._run_from_rappioservices(Rappio.CURRENT, 'takeScreenshot', filepath)
+        self._run_from_services(RemoteSwingLibrary.CURRENT, 'takeScreenshot', filepath)
         logger.info('<img src="%s"></img>' % robot.utils.get_link_path(filepath, logdir), html=True)
 
     # Copied from Selenium2Library _logging.py module ( a6e2c7fbb9098eb6e2e6ccaadb4dbfdbe26542a6 )
@@ -217,7 +221,7 @@ class Rappio(object):
     def _application_should_be_closed(self, timeout):
         with self._run_and_ignore_connection_lost():
             self._ping_until_timeout(timeout)
-            raise RappioTimeoutError('Application was not closed before timeout')
+            raise RemoteSwingLibraryTimeoutError('Application was not closed before timeout')
 
     @contextmanager
     def _run_and_ignore_connection_lost(self):
@@ -239,22 +243,23 @@ class Rappio(object):
 
     def system_exit(self, alias, exit_code=1):
         with self._run_and_ignore_connection_lost():
-            self._run_from_rappioservices(alias, 'systemExit', exit_code)
+            self._run_from_services(alias, 'systemExit', exit_code)
 
     def switch_to_application(self, alias):
-        """Switches between Java-agents in applications that are known to Rappio. The application is identified using the alias.
+        """Switches between Java-agents in applications that are known to RemoteSwingLibrary.
+        The application is identified using the alias.
         Subsequent keywords will be passed on to this application."""
-        Rappio.CURRENT = alias
-        self.ROBOT_NAMESPACE_BRIDGE.re_import_rappio()
+        RemoteSwingLibrary.CURRENT = alias
+        self.ROBOT_NAMESPACE_BRIDGE.re_import_remoteswinglibrary()
 
     # HYBRID KEYWORDS
 
     def get_keyword_names(self):
         if self.current:
-            return Rappio.KEYWORDS + [kw for
-                                      kw in self.current.get_keyword_names(attempts=Rappio.TIMEOUT)
+            return RemoteSwingLibrary.KEYWORDS + [kw for
+                                      kw in self.current.get_keyword_names(attempts=RemoteSwingLibrary.TIMEOUT)
                                       if kw != 'startApplication']
-        return Rappio.KEYWORDS
+        return RemoteSwingLibrary.KEYWORDS
 
     def __getattr__(self, name):
         current = self.current

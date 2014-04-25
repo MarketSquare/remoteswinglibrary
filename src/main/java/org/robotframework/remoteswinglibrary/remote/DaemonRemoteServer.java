@@ -1,4 +1,4 @@
-package org.robotframework.rappio.remote;
+package org.robotframework.remoteswinglibrary.remote;
 
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.robotframework.remoteserver.RemoteServer;
