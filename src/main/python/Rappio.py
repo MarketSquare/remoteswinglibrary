@@ -5,7 +5,9 @@ import threading
 import time
 import SocketServer
 from xmlrpclib import ProtocolError
+import robot
 from robot.errors import HandlerExecutionFailed
+from robot.variables import GLOBAL_VARIABLES
 from robot.libraries.Process import Process
 from robot.libraries.Remote import Remote
 from robot.running import EXECUTION_CONTEXTS
@@ -200,9 +202,17 @@ class Rappio(object):
             raise
 
     def _take_screenshot(self):
-        filepath = 'screenshot%s.png' % time.time()
+        logdir = self._get_log_dir()
+        filepath = os.path.join(logdir, 'remoteswinglibrary-screenshot%s.png' % long(time.time()*1000))
         self._run_from_rappioservices(Rappio.CURRENT, 'takeScreenshot', filepath)
-        logger.info('<img src="%s"></img>' % filepath, html=True)
+        logger.info('<img src="%s"></img>' % robot.utils.get_link_path(filepath, logdir), html=True)
+
+    # Copied from Selenium2Library _logging.py module ( a6e2c7fbb9098eb6e2e6ccaadb4dbfdbe26542a6 )
+    def _get_log_dir(self):
+        logfile = GLOBAL_VARIABLES['${LOG FILE}']
+        if logfile != 'NONE':
+            return os.path.dirname(logfile)
+        return GLOBAL_VARIABLES['${OUTPUTDIR}']
 
     def _application_should_be_closed(self, timeout):
         with self._run_and_ignore_connection_lost():
