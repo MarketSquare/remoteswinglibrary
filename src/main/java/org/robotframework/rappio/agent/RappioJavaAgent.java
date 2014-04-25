@@ -51,35 +51,12 @@ public class RappioJavaAgent {
             }
 	}
         
-        private static void notifyPort(final Integer portToNotify, final Integer serverPort) {
-            Timer timer = new Timer("RobotJavaAgentPortNotifyingTimer", true);
-            timer.schedule(new TimerTask() {
-
-                @Override
-                public void run() {
-                    try {
-                        waitForSwingComponent();
-                        reportPort();
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-                }
-                
-                private void waitForSwingComponent() throws InterruptedException {
-                    while(Window.getWindows().length == 0) {
-                        Thread.sleep(100);
-                    }
-                }
-                
-                private void reportPort() throws IOException {
-                    Socket echoSocket = new Socket(LOCALHOST, serverPort);
-                    PrintWriter outToServer = new PrintWriter(echoSocket.getOutputStream(), true);
-                    outToServer.write(portToNotify.toString()+":"+getName());
-                    outToServer.close();
-                    echoSocket.close();
-                }
-
-            }, 100);
+        private static void notifyPort(final Integer portToNotify, final Integer serverPort) throws IOException {
+            Socket echoSocket = new Socket(LOCALHOST, serverPort);
+            PrintWriter outToServer = new PrintWriter(echoSocket.getOutputStream(), true);
+            outToServer.write(portToNotify.toString()+":"+getName());
+            outToServer.close();
+            echoSocket.close();
         }
         
         private static String getName() {

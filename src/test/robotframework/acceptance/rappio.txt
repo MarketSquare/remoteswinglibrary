@@ -9,9 +9,6 @@ None Existing Application start fails before timeout
      [Timeout]    5 seconds
      Run Keyword And Expect Error    *    Start Application    no-one    this command fails immediatly   timeout=1
 
-Starting a java application without main window fails
-     Run keyword and expect error   *Agent port not received before timeout   Start Application    myapp    java org.robotframework.rappio.MyApp  timeout=5
-
 Starting and stopping application with main window
      Start Application    myapp2    java org.robotframework.rappio.MySwingApp  timeout=5
      System Exit          myapp2
