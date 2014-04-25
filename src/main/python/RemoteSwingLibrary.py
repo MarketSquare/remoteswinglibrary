@@ -93,6 +93,8 @@ class RemoteSwingLibrary(object):
     server uses. Providing the port is optional. If you do not provide one,
     RemoteSwingLibrary will ask the OS for an unused port.
 
+    See https://github.com/robotframework/SwingLibrary for details about SwingLibrary keywords revealed through this library.
+
     Examples:
     | Library | RemoteSwingLibrary |      |
     | Library | RemoteSwingLibrary | 8181 |
