@@ -51,6 +51,17 @@ public class JavaAgent {
             }
 	}
         
+        public static void main(String[] args) throws InterruptedException{
+            System.out.println("This is RemoteSwingLibrary\n"
+                    + "Usage:\n"
+                    + "Add this jar file to PYTHONPATH\n"
+                    + "Import RemoteSwingLibrary in your test cases\n"
+                    + "\n"
+                    + "This program will now sleep for 0.5 second\n"
+                    + "for documentation generation purposes");
+            Thread.sleep(500);
+        }
+        
         private static void notifyPort(final Integer portToNotify, final Integer serverPort) throws IOException {
             Socket echoSocket = new Socket(LOCALHOST, serverPort);
             PrintWriter outToServer = new PrintWriter(echoSocket.getOutputStream(), true);

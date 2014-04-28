@@ -67,6 +67,8 @@ class RobotLibraryImporter(object):
     """Class for manipulating Robot Framework library imports during runtime"""
 
     def re_import_remoteswinglibrary(self):
+        if EXECUTION_CONTEXTS.current is None:
+            return
         name = 'RemoteSwingLibrary'
         self._remove_lib_from_current_namespace(name)
         self._import_wrapper().remove_library(name, [])
@@ -118,10 +120,12 @@ class RemoteSwingLibrary(object):
     PORT = None
     AGENT_PATH = os.path.abspath(os.path.dirname(__file__))
 
-    def __init__(self, port=None):
+    def __init__(self, port=None, doc_generator=False):
         if RemoteSwingLibrary.PORT is None:
             RemoteSwingLibrary.PORT = self._start_port_server(port or 0)
         self._set_env()
+        if doc_generator:
+            self.start_application('docgenerator', 'java -jar %s' % RemoteSwingLibrary.AGENT_PATH, timeout=1.0)
 
     @property
     def current(self):
@@ -283,8 +287,6 @@ class RemoteSwingLibrary(object):
         RemoteSwingLibrary.CURRENT = alias
         self.ROBOT_NAMESPACE_BRIDGE.re_import_remoteswinglibrary()
 
-    # HYBRID KEYWORDS
-
     def get_keyword_names(self):
         if self.current:
             return RemoteSwingLibrary.KEYWORDS + [kw for
@@ -292,8 +294,21 @@ class RemoteSwingLibrary(object):
                                       if kw != 'startApplication']
         return RemoteSwingLibrary.KEYWORDS
 
-    def __getattr__(self, name):
-        current = self.current
-        def func(*args, **kwargs):
-            return current.run_keyword(name, args, kwargs)
-        return func
+    def get_keyword_arguments(self, name):
+        if name in RemoteSwingLibrary.KEYWORDS:
+            return ['*args']
+        if self.current:
+            return self.current.get_keyword_arguments(name)
+        return
+
+    def get_keyword_documentation(self, name):
+        if name == '__intro__':
+            return RemoteSwingLibrary.__doc__
+        if name in RemoteSwingLibrary.KEYWORDS or name == '__init__':
+            return getattr(self, name).__doc__
+        return self.current.get_keyword_documentation(name)
+
+    def run_keyword(self, name, *args, **kwargs):
+        if name in RemoteSwingLibrary.KEYWORDS:
+            return getattr(self, name)(*args, **kwargs)
+        return self.current.run_keyword(name, *args, **kwargs)
