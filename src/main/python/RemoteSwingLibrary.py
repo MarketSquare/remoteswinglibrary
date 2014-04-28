@@ -1,5 +1,6 @@
 from __future__ import with_statement
 from contextlib import contextmanager
+import inspect
 import os
 import threading
 import time
@@ -296,10 +297,22 @@ class RemoteSwingLibrary(object):
 
     def get_keyword_arguments(self, name):
         if name in RemoteSwingLibrary.KEYWORDS:
-            return ['*args']
+            return self._get_args(name)
         if self.current:
             return self.current.get_keyword_arguments(name)
         return
+
+    def _get_args(self, method_name):
+        spec = inspect.getargspec(getattr(self, method_name))
+        args = spec[0][1:]
+        if spec[3]:
+            for i, item in enumerate(reversed(spec[3])):
+                args[-i-1] = args[-i-1]+'='+str(item)
+        if spec[1]:
+            args += ['*'+spec[1]]
+        if spec[2]:
+            args += ['**'+spec[2]]
+        return args
 
     def get_keyword_documentation(self, name):
         if name == '__intro__':
