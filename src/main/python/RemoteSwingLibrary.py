@@ -235,7 +235,7 @@ class RemoteSwingLibrary(object):
         except RemoteSwingLibraryTimeoutError, t:
             logger.warn('Application is not closed before timeout - killing application')
             self._take_screenshot()
-            self.system_exit(RemoteSwingLibrary.CURRENT)
+            self.system_exit()
             raise
 
     def _take_screenshot(self):
@@ -274,19 +274,17 @@ class RemoteSwingLibrary(object):
             logger.info('Connection died as expected')
             return
 
-    def system_exit(self, alias, exit_code=1):
-        """ Uses the RemoteSwingLibrary java agent to call system exit for the specific java process with the given
-        alias.
+    def system_exit(self, exit_code=1):
+        """ Uses the RemoteSwingLibrary java agent to call system exit for the specific java process.
         """
         with self._run_and_ignore_connection_lost():
-            self._run_from_services(alias, 'systemExit', exit_code)
+            self._run_from_services(RemoteSwingLibrary.CURRENT, 'systemExit', exit_code)
 
     def switch_to_application(self, alias):
         """Switches between Java-agents in applications that are known to RemoteSwingLibrary.
         The application is identified using the alias.
         Subsequent keywords will be passed on to this application."""
         RemoteSwingLibrary.CURRENT = alias
-        self.ROBOT_NAMESPACE_BRIDGE.re_import_remoteswinglibrary()
 
     def get_keyword_names(self):
         if self.current:

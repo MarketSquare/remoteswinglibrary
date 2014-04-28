@@ -11,7 +11,7 @@ None Existing Application start fails before timeout
 
 Starting and stopping application with main window
      Start Application    myapp2    java org.robotframework.remoteswinglibrary.MySwingApp  timeout=5
-     System Exit          myapp2
+     System Exit
 
 Connecting to a started application
      ${handle}=  Start Process   java org.robotframework.remoteswinglibrary.MySwingApp   shell=True
@@ -41,11 +41,13 @@ Ensure application closing when timeout
 *** Keywords ***
 Exit and check process
    [Arguments]    ${handler}   ${alias}
+   Switch To Application  ${alias}
    Process Should Be Running    ${handler}
-   System Exit   ${alias}
+   System Exit
    Process Should Be Stopped    ${handler}
 
 My Closing Keyword
    [Arguments]    ${alias}
+   Switch To Application  ${alias}
    Log     something plaah
-   System Exit   ${alias}
+   System Exit
