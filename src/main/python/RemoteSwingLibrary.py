@@ -212,11 +212,11 @@ class RemoteSwingLibrary(object):
         delta = min(0.1, timeout)
         endtime = timeout+time.time()
         while endtime > time.time():
-            self._run_from_services(RemoteSwingLibrary.CURRENT, 'ping')
+            self._run_from_services('ping')
             time.sleep(delta)
 
-    def _run_from_services(self, alias, kw, *args, **kwargs):
-        return self.REMOTES[alias][1].run_keyword(kw, args, kwargs)
+    def _run_from_services(self, kw, *args, **kwargs):
+        return self.REMOTES[RemoteSwingLibrary.CURRENT][1].run_keyword(kw, args, kwargs)
 
     @run_keyword_variant(resolve=1)
     def ensure_application_should_close(self, timeout, kw, *args):
@@ -241,7 +241,7 @@ class RemoteSwingLibrary(object):
     def _take_screenshot(self):
         logdir = self._get_log_dir()
         filepath = os.path.join(logdir, 'remoteswinglibrary-screenshot%s.png' % long(time.time()*1000))
-        self._run_from_services(RemoteSwingLibrary.CURRENT, 'takeScreenshot', filepath)
+        self._run_from_services('takeScreenshot', filepath)
         logger.info('<img src="%s"></img>' % robot.utils.get_link_path(filepath, logdir), html=True)
 
     # Copied from Selenium2Library _logging.py module ( a6e2c7fbb9098eb6e2e6ccaadb4dbfdbe26542a6 )
@@ -278,7 +278,7 @@ class RemoteSwingLibrary(object):
         """ Uses the RemoteSwingLibrary java agent to call system exit for the specific java process.
         """
         with self._run_and_ignore_connection_lost():
-            self._run_from_services(RemoteSwingLibrary.CURRENT, 'systemExit', exit_code)
+            self._run_from_services('systemExit', exit_code)
 
     def switch_to_application(self, alias):
         """Switches between Java-agents in applications that are known to RemoteSwingLibrary.
