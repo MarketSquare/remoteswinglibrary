@@ -298,7 +298,6 @@ class RemoteSwingLibrary(object):
             return self._get_args(name)
         if self.current:
             return self.current.get_keyword_arguments(name)
-        return
 
     def _get_args(self, method_name):
         spec = inspect.getargspec(getattr(self, method_name))
