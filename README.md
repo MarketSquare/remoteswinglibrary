@@ -6,7 +6,7 @@ Connect to a java process and use swinglibrary.
 Installation
 ------------
 
-* Download newest RemoteSwingLibray.jar
+* Download latest RemoteSwingLibrary.jar
 * Add downloaded jar to PYTHONPATH
 * After that, you can import the library in your test cases:
     ```
