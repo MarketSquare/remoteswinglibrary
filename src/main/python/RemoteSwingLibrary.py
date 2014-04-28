@@ -321,7 +321,7 @@ class RemoteSwingLibrary(object):
             return getattr(self, name).__doc__
         return self.current.get_keyword_documentation(name)
 
-    def run_keyword(self, name, *args, **kwargs):
+    def run_keyword(self, name, arguments, kwargs):
         if name in RemoteSwingLibrary.KEYWORDS:
-            return getattr(self, name)(*args, **kwargs)
-        return self.current.run_keyword(name, *args, **kwargs)
+            return getattr(self, name)(*arguments, **kwargs)
+        return self.current.run_keyword(name, arguments, kwargs)
