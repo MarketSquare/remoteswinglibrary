@@ -96,7 +96,17 @@ class RemoteSwingLibrary(object):
     server uses. Providing the port is optional. If you do not provide one,
     RemoteSwingLibrary will ask the OS for an unused port.
 
-    See https://github.com/robotframework/SwingLibrary for details about SwingLibrary keywords revealed through this library.
+    Keywords directly offered by this library on top of SwingLibrary keywords are:
+    * Application Started
+    * Ensure Application Should Close
+    * Start Application
+    * System Exit
+    * Switch To Application
+
+    Following SwingLibrary Keywords are not available through RemoteSwingLibrary:
+    * Launch Application
+    * SwingLibrary version of Start Application
+    * Start Application In Separate Thread
 
     Examples:
     | * Settings * |
@@ -220,8 +230,7 @@ class RemoteSwingLibrary(object):
 
     @run_keyword_variant(resolve=1)
     def ensure_application_should_close(self, timeout, kw, *args):
-        """ Runs the given keyword and waits until timeout for the application to close - the application is the current
-        active application.
+        """ Runs the given keyword and waits until timeout for the application to close .
         If the application doesn't close, the keyword will take a screenshot and close the application
         and after that it will fail.
         In many cases calling the keyword that will close the application under test brakes the remote connection.
@@ -275,13 +284,13 @@ class RemoteSwingLibrary(object):
             return
 
     def system_exit(self, exit_code=1):
-        """ Uses the RemoteSwingLibrary java agent to call system exit for the specific java process.
+        """ Uses the RemoteSwingLibrary java agent to call system exit for the current java application.
         """
         with self._run_and_ignore_connection_lost():
             self._run_from_services('systemExit', exit_code)
 
     def switch_to_application(self, alias):
-        """Switches between Java-agents in applications that are known to RemoteSwingLibrary.
+        """Switches between applications that are known to RemoteSwingLibrary.
         The application is identified using the alias.
         Subsequent keywords will be passed on to this application."""
         RemoteSwingLibrary.CURRENT = alias
