@@ -135,11 +135,16 @@ class RemoteSwingLibrary(object):
     PORT = None
     AGENT_PATH = os.path.abspath(os.path.dirname(__file__))
 
-    def __init__(self, port=None, doc_generator=False):
+    def __init__(self, port=None):
+        """
+        port: optional port for the server receiving connections from remote agents
+        NOTE! with special value 'TEST' starts a test application for documentation generation
+        purposes `python -m robot.libdoc RemoteSwingLibrary::TEST`
+        """
         if RemoteSwingLibrary.PORT is None:
-            RemoteSwingLibrary.PORT = self._start_port_server(port or 0)
+            RemoteSwingLibrary.PORT = self._start_port_server(0 if port == 'TEST' else port or 0)
         self._set_env()
-        if doc_generator:
+        if port == 'TEST':
             self.start_application('docgenerator', 'java -jar %s' % RemoteSwingLibrary.AGENT_PATH, timeout=1.0)
 
     @property
