@@ -97,16 +97,20 @@ class RemoteSwingLibrary(object):
     RemoteSwingLibrary will ask the OS for an unused port.
 
     Keywords directly offered by this library on top of SwingLibrary keywords are:
-    * Application Started
-    * Ensure Application Should Close
-    * Start Application
-    * System Exit
-    * Switch To Application
+    - [#Application Started|Application Started]
+    - [#Ensure Application Should Close|Ensure Application Should Close]
+    - [#Start Application|Start Application]
+    - [#System Exit|System Exit]
+    - [#Switch To Application|Switch To Application]
+
+    [https://github.com/ombre42/jrobotremoteserver|jrobotremoteserver]
+    that is used by RemoteSwingLibrary also offers a keyword:
+    - [#Stop Remote Server|Stop Remote Server]
 
     Following SwingLibrary Keywords are not available through RemoteSwingLibrary:
-    * Launch Application
-    * SwingLibrary version of Start Application
-    * Start Application In Separate Thread
+    - Launch Application
+    - SwingLibrary version of Start Application
+    - Start Application In Separate Thread
 
     Examples:
     | * Settings * |
