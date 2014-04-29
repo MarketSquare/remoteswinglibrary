@@ -138,6 +138,7 @@ class RemoteSwingLibrary(object):
     def __init__(self, port=None):
         """
         port: optional port for the server receiving connections from remote agents
+        
         NOTE! with special value 'TEST' starts a test application for documentation generation
         purposes `python -m robot.libdoc RemoteSwingLibrary::TEST`
         """
