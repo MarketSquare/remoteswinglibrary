@@ -113,6 +113,9 @@ class RemoteSwingLibrary(object):
     - SwingLibrary version of Start Application
     - Start Application In Separate Thread
 
+    NOTE! [#Get Table Cell Property|Get Table Cell Property] will return the string representation of that property
+    and not the actual object. Complex objects are not passed through Remote library interface.
+
     Examples:
     | * Settings * |
     | Library | RemoteSwingLibrary |
@@ -120,7 +123,7 @@ class RemoteSwingLibrary(object):
     | Testing java application |
     | | Start Application | myjavaapp | java -jar myjava.jar |
     | | Select Window  | My App |
-    | | Ensure Application Should Close | 5 | Push Button | Exit |
+    | | Ensure Application Should Close | 15 seconds | Push Button | Exit |
 
 
     """
