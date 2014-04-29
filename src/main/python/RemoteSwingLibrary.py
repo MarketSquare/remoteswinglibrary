@@ -17,6 +17,7 @@ from robot.running.testlibraries import TestLibrary
 from robot.libraries.BuiltIn import BuiltIn, run_keyword_variant
 from robot.api import logger
 
+
 REMOTE_AGENTS_LIST = []
 EXPECTED_AGENT_RECEIVED = threading.Event()
 
@@ -196,7 +197,7 @@ class RemoteSwingLibrary(object):
         using the Start Application -keyword. The given alias is stored to identify the
         started application in RemoteSwingLibrary.
         Subsequent keywords will be passed on to this application."""
-        self.TIMEOUT = int(timeout)
+        self.TIMEOUT = robot.utils.timestr_to_secs(timeout)
         port = self._get_agent_port(name_contains)
         url = '127.0.0.1:%s'%port
         logger.info('connecting to started application through port %s' % port)
@@ -250,7 +251,7 @@ class RemoteSwingLibrary(object):
         with self._run_and_ignore_connection_lost():
             BuiltIn().run_keyword(kw, *args)
         try:
-            self._application_should_be_closed(timeout=timeout)
+            self._application_should_be_closed(timeout=robot.utils.timestr_to_secs(timeout))
         except RemoteSwingLibraryTimeoutError, t:
             logger.warn('Application is not closed before timeout - killing application')
             self._take_screenshot()

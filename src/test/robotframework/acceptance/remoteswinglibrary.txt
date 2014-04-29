@@ -10,7 +10,7 @@ None Existing Application start fails before timeout
      Run Keyword And Expect Error    *    Start Application    no-one    this command fails immediatly   timeout=1
 
 Starting and stopping application with main window
-     Start Application    myapp2    java org.robotframework.remoteswinglibrary.MySwingApp  timeout=5
+     Start Application    myapp2    java org.robotframework.remoteswinglibrary.MySwingApp  timeout=5 seconds
      System Exit
 
 Connecting to a started application
@@ -32,14 +32,14 @@ Connecting to a specific application
 
 Ensure application closing
      Start Application    myapp    java org.robotframework.remoteswinglibrary.MySwingApp  timeout=5
-     Ensure Application Should Close    5   My Closing Keyword    myapp
+     Ensure Application Should Close    5 seconds   My Closing Keyword    myapp
 
 Ensure application closing when timeout
-     Start Application    myapp    java org.robotframework.remoteswinglibrary.MySwingApp  timeout=5
-     Run Keyword and expect error  *Application was not closed before timeout*  Ensure Application Should Close    1   No Operation
+     Start Application    myapp    java org.robotframework.remoteswinglibrary.MySwingApp  timeout=5 seconds
+     Run Keyword and expect error  *Application was not closed before timeout*  Ensure Application Should Close    1 second   No Operation
 
 Unallowed SwingLibrary keywords
-    Start Application    myapp3    java org.robotframework.remoteswinglibrary.MySwingApp  timeout=5
+    Start Application    myapp3    java org.robotframework.remoteswinglibrary.MySwingApp  timeout=5 seconds
     Keyword Should Not Exist   Launch Application
     Keyword Should Not Exist   Start Application In Separate Thread
     [Teardown]  System Exit
