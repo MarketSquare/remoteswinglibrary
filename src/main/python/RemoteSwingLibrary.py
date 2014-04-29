@@ -92,9 +92,13 @@ class RemoteSwingLibraryTimeoutError(RuntimeError):
 
 
 class RemoteSwingLibrary(object):
-    """Robot Framework library leveraging Java-agents to run SwingLibrary keywords on Java-processes. The library contains
-    a simple socket server to communicate with Java agents. When taking the library into use, you can specify the port this
-    server uses. Providing the port is optional. If you do not provide one,
+    """Robot Framework library leveraging Java-agents to run [https://github.com/robotframework/SwingLibrary|SwingLibrary]
+    keywords on Java-processes.
+
+    To take the library in to use add remoteswinglibrary-[version].jar to PYTHONPATH.
+
+    The library contains a simple socket server to communicate with Java agents. When taking the library into use,
+    you can specify the port this server uses. Providing the port is optional. If you do not provide one,
     RemoteSwingLibrary will ask the OS for an unused port.
 
     Keywords directly offered by this library on top of SwingLibrary keywords are:
@@ -144,7 +148,7 @@ class RemoteSwingLibrary(object):
         port: optional port for the server receiving connections from remote agents
 
         NOTE! with special value 'TEST' starts a test application for documentation generation
-        purposes `python -m robot.libdoc RemoteSwingLibrary::TEST`
+        purposes `python -m robot.libdoc RemoteSwingLibrary::TEST RemoteSwingLibrary.html`
         """
         if RemoteSwingLibrary.PORT is None:
             RemoteSwingLibrary.PORT = self._start_port_server(0 if port == 'TEST' else port or 0)
