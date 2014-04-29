@@ -138,7 +138,7 @@ class RemoteSwingLibrary(object):
     def __init__(self, port=None):
         """
         port: optional port for the server receiving connections from remote agents
-        
+
         NOTE! with special value 'TEST' starts a test application for documentation generation
         purposes `python -m robot.libdoc RemoteSwingLibrary::TEST`
         """
@@ -309,7 +309,9 @@ class RemoteSwingLibrary(object):
         if self.current:
             return RemoteSwingLibrary.KEYWORDS + [kw for
                                       kw in self.current.get_keyword_names(attempts=RemoteSwingLibrary.TIMEOUT)
-                                      if kw != 'startApplication']
+                                      if kw not in ['startApplication',
+                                                    'launchApplication',
+                                                    'startApplicationInSeparateThread']]
         return RemoteSwingLibrary.KEYWORDS
 
     def get_keyword_arguments(self, name):

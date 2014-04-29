@@ -38,7 +38,17 @@ Ensure application closing when timeout
      Start Application    myapp    java org.robotframework.remoteswinglibrary.MySwingApp  timeout=5
      Run Keyword and expect error  *Application was not closed before timeout*  Ensure Application Should Close    1   No Operation
 
+Unallowed SwingLibrary keywords
+    Start Application    myapp3    java org.robotframework.remoteswinglibrary.MySwingApp  timeout=5
+    Keyword Should Not Exist   Launch Application
+    Keyword Should Not Exist   Start Application In Separate Thread
+    [Teardown]  System Exit
+
 *** Keywords ***
+Keyword Should Not Exist
+   [Arguments]   ${keyword}
+   Run Keyword And Expect Error   No keyword with name '${keyword}' found.    Keyword Should Exist   ${keyword}
+
 Exit and check process
    [Arguments]    ${handler}   ${alias}
    Switch To Application  ${alias}
