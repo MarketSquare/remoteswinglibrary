@@ -6,7 +6,7 @@ Connect to a java process and use swinglibrary.
 Installation
 ------------
 
-* Download latest RemoteSwingLibrary.jar
+* Download latest RemoteSwingLibrary and documentation from https://github.com/robotframework/remoteswinglibrary/releases/tag/1.0
 * Add downloaded jar to PYTHONPATH
 * After that, you can import the library in your test cases:
     ```
