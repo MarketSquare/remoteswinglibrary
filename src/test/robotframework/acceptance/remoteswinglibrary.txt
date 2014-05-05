@@ -19,7 +19,7 @@ Connecting to a started application
      Exit and check process   ${handle}    myjava
 
 Connecting to a specific application
-     [Timeout]    10 seconds
+     [Timeout]    30 seconds
      ${handle1}=  Start Process   java org.robotframework.remoteswinglibrary.MySwingApp one    shell=True
      ${handle2}=  Start Process   java org.robotframework.remoteswinglibrary.MySwingApp two    shell=True
      ${handle3}=  Start Process   java org.robotframework.remoteswinglibrary.MySwingApp three  shell=True
@@ -54,7 +54,7 @@ Exit and check process
    Switch To Application  ${alias}
    Process Should Be Running    ${handler}
    System Exit
-   Process Should Be Stopped    ${handler}
+   Wait until keyword succeeds   5 seconds   0.5 seconds   Process Should Be Stopped    ${handler}
 
 My Closing Keyword
    [Arguments]    ${alias}
