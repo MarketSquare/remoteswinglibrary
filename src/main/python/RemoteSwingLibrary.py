@@ -39,8 +39,10 @@ class SimpleServer(SocketServer.BaseRequestHandler):
     def handle(self):
         data = ''.join(iter(self.read_socket, ''))
         port, name = data.decode().split(':', 1)
-        print '*DEBUG:%d* Registered java remoteswinglibrary agent "%s" at port %s' % (time.time()*1000, name, port)
-        REMOTE_AGENTS_LIST.append((port, name))
+        address = ':'.join([self.client_address[0], port])
+        print '*DEBUG:%d* Registered java remoteswinglibrary agent "%s" at %s' % \
+              (time.time()*1000, name, address)
+        REMOTE_AGENTS_LIST.append((address, name))
         EXPECTED_AGENT_RECEIVED.set()
         self.request.sendall(data)
 
@@ -218,14 +220,13 @@ class RemoteSwingLibrary(object):
         started application in RemoteSwingLibrary.
         Subsequent keywords will be passed on to this application."""
         self.TIMEOUT = robot.utils.timestr_to_secs(timeout)
-        port = self._get_agent_port(name_contains)
-        url = '127.0.0.1:%s'%port
-        logger.info('connecting to started application through port %s' % port)
+        url = self._get_agent_address(name_contains)
+        logger.info('connecting to started application in url %s' % url)
         self._initialize_remote_libraries(alias, url)
         RemoteSwingLibrary.CURRENT = alias
         logger.debug('modifying robot framework namespace')
         self.ROBOT_NAMESPACE_BRIDGE.re_import_remoteswinglibrary()
-        logger.info('connected to started application through port %s' % port)
+        logger.info('connected to started application in url %s' % url)
 
     def _initialize_remote_libraries(self, alias, url):
         swinglibrary = Remote(url)
@@ -234,7 +235,7 @@ class RemoteSwingLibrary(object):
         logger.debug('remote services instantiated')
         self.REMOTES[alias] = [swinglibrary, services]
 
-    def _get_agent_port(self, name_pattern):
+    def _get_agent_address(self, name_pattern):
         while True:
             if not REMOTE_AGENTS_LIST:
                 EXPECTED_AGENT_RECEIVED.clear()
@@ -242,10 +243,10 @@ class RemoteSwingLibrary(object):
                 timeout=self.TIMEOUT) # Ensure that a waited agent is the one we are receiving and not some older one
             if not EXPECTED_AGENT_RECEIVED.isSet():
                 raise RemoteSwingLibraryTimeoutError('Agent port not received before timeout')
-            for port, name in reversed(REMOTE_AGENTS_LIST):
+            for address, name in reversed(REMOTE_AGENTS_LIST):
                 if name_pattern is None or name_pattern in name:
-                    REMOTE_AGENTS_LIST.remove((port, name))
-                    return port
+                    REMOTE_AGENTS_LIST.remove((address, name))
+                    return address
             time.sleep(0.1)
 
     def _ping_until_timeout(self, timeout):
