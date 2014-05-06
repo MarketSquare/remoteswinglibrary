@@ -189,6 +189,8 @@ class RemoteSwingLibrary(object):
     def _set_env(self):
         agent_command = '-javaagent:%s=%s' % (RemoteSwingLibrary.AGENT_PATH, RemoteSwingLibrary.PORT)
         os.environ['JAVA_TOOL_OPTIONS'] = agent_command
+        BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPATH}', RemoteSwingLibrary.AGENT_PATH)
+        BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPORT}', RemoteSwingLibrary.PORT)
         logger.info(agent_command)
 
     def start_application(self, alias, command, timeout=60, name_contains=None):

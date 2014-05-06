@@ -30,6 +30,13 @@ Connecting to a specific application
      Exit and check process    ${handle3}   three
      Exit and check process    ${handle1}   one
 
+Connecting to an application and using java agent option
+    [Timeout]    20 seconds
+    ${agent}=    Set Variable   -javaagent:${REMOTESWINGLIBRARYPATH}\=${REMOTESWINGLIBRARYPORT}
+    ${handle}=    Start Process  java ${agent} org.robotframework.remoteswinglibrary.MySwingApp   shell=True
+    Application Started     app
+    Exit and check process    ${handle}   app
+
 Ensure application closing
      Start Application    myapp    java org.robotframework.remoteswinglibrary.MySwingApp  timeout=5
      Ensure Application Should Close    5 seconds   My Closing Keyword    myapp
