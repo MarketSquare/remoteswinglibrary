@@ -187,7 +187,7 @@ class RemoteSwingLibrary(object):
         return server.server_address[1]
 
     def _set_env(self):
-        agent_command = '-javaagent:%s=%s' % (RemoteSwingLibrary.AGENT_PATH, RemoteSwingLibrary.PORT)
+        agent_command = '-javaagent:%s=127.0.0.1:%s' % (RemoteSwingLibrary.AGENT_PATH, RemoteSwingLibrary.PORT)
         os.environ['JAVA_TOOL_OPTIONS'] = agent_command
         BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPATH}', RemoteSwingLibrary.AGENT_PATH)
         BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPORT}', RemoteSwingLibrary.PORT)

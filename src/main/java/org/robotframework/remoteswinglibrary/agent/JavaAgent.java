@@ -43,7 +43,6 @@ import sun.awt.SunToolkit;
 
 public class JavaAgent {
 
-	private static final String LOCALHOST = "127.0.0.1";
 	private static final int DEFAULT_REMOTESWINGLIBRARY_PORT = 8181;
 	private static PrintStream out = System.out;
 
@@ -60,7 +59,7 @@ public class JavaAgent {
                     SunToolkit.createNewAppContext();
                 }
                 Integer actualPort = server.getLocalPort();
-                notifyPort(actualPort, getRemoteSwingLibraryPort(agentArgument));
+                notifyPort(actualPort, getRemoteSwingLibraryHost(agentArgument), getRemoteSwingLibraryPort(agentArgument));
             } catch (Exception e) {
                     System.err.println("Error starting remote server");
             }finally{
@@ -79,8 +78,8 @@ public class JavaAgent {
             Thread.sleep(500);
         }
         
-        private static void notifyPort(final Integer portToNotify, final Integer serverPort) throws IOException {
-            Socket echoSocket = new Socket(LOCALHOST, serverPort);
+        private static void notifyPort(final Integer portToNotify, final String serverHost, final Integer serverPort) throws IOException {
+            Socket echoSocket = new Socket(serverHost, serverPort);
             PrintWriter outToServer = new PrintWriter(echoSocket.getOutputStream(), true);
             outToServer.write(portToNotify.toString()+":"+getName());
             outToServer.close();
@@ -101,12 +100,16 @@ public class JavaAgent {
 
 	private static int getRemoteSwingLibraryPort(String agentArgument) {
 		try{
-			return Integer.parseInt(agentArgument);
-		}catch(Exception e){
+			return Integer.parseInt(agentArgument.split(":")[1]);
+		}catch(NumberFormatException e){
 			return DEFAULT_REMOTESWINGLIBRARY_PORT;
 		}
 	}
 
+        private static String getRemoteSwingLibraryHost(String agentArgument) {
+            return agentArgument.split(":")[0];
+        }
+        
 	// Silence stdout, some clients expect the output to be valid XML
 	private static void noOutput() {
 		Logger root = Logger.getRootLogger();
