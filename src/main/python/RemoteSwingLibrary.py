@@ -223,12 +223,12 @@ class RemoteSwingLibrary(object):
         Subsequent keywords will be passed on to this application."""
         self.TIMEOUT = robot.utils.timestr_to_secs(timeout)
         url = self._get_agent_address(name_contains)
-        logger.info('connecting to started application in url %s' % url)
+        logger.info('connecting to started application at %s' % url)
         self._initialize_remote_libraries(alias, url)
         RemoteSwingLibrary.CURRENT = alias
         logger.debug('modifying robot framework namespace')
         self.ROBOT_NAMESPACE_BRIDGE.re_import_remoteswinglibrary()
-        logger.info('connected to started application in url %s' % url)
+        logger.info('connected to started application at %s' % url)
 
     def _initialize_remote_libraries(self, alias, url):
         swinglibrary = Remote(url)
