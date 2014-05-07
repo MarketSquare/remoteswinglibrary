@@ -61,6 +61,8 @@ public class JavaAgent {
                 Integer actualPort = server.getLocalPort();
                 notifyPort(actualPort, getRemoteSwingLibraryHost(agentArgument), getRemoteSwingLibraryPort(agentArgument));
             } catch (Exception e) {
+                    e.printStackTrace();
+                    System.err.println(e);
                     System.err.println("Error starting remote server");
             }finally{
                     System.setOut(out);
