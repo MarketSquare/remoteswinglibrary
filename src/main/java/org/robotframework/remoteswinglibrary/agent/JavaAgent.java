@@ -75,9 +75,10 @@ public class JavaAgent {
                     + "Add this jar file to PYTHONPATH\n"
                     + "Import RemoteSwingLibrary in your test cases\n"
                     + "\n"
-                    + "This program will now sleep for 0.5 second\n"
-                    + "for documentation generation purposes");
-            Thread.sleep(500);
+                    + "This program will now sleep for 5 seconds\n"
+                    + "This main is for documentation generation "
+                    + "and connection testing purposes");
+            Thread.sleep(5000);
         }
         
         private static void notifyPort(final Integer portToNotify, final String serverHost, final Integer serverPort) throws IOException {
