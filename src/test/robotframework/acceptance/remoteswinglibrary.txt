@@ -51,6 +51,12 @@ Unallowed SwingLibrary keywords
     Keyword Should Not Exist   Start Application In Separate Thread
     [Teardown]  System Exit
 
+Logging java properties
+    Start Application    mapp    java org.robotframework.remoteswinglibrary.MySwingApp  timeout=5 seconds
+    ${props}=       Log Java System Properties
+    Should Contain   ${props}   System.getenv():
+    [Teardown]  System Exit
+
 *** Keywords ***
 Keyword Should Not Exist
    [Arguments]   ${keyword}

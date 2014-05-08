@@ -43,11 +43,12 @@ public class ServicesLibrary {
     }
     
     public String getEnvironment() {
-        String envi = "";
+        String envi = "System.getenv():\n";
         for(final Map.Entry<String, String> entry : System.getenv().entrySet())
         {
             envi = envi + entry.getKey() + " : " + entry.getValue() + "\n";
         }
+        envi = envi + "\nSystem.getProperties():\n";
         for(final Map.Entry<Object,Object> property : System.getProperties().entrySet()){
             envi = envi + property.getKey() + " : " + property.getValue() + "\n";
         }

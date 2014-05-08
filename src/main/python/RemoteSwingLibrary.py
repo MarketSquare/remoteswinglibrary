@@ -119,6 +119,7 @@ class RemoteSwingLibrary(object):
     Keywords directly offered by this library on top of SwingLibrary keywords are:
     - [#Application Started|Application Started]
     - [#Ensure Application Should Close|Ensure Application Should Close]
+    - [#Log Java System Properties|Log Java System Properties]
     - [#Start Application|Start Application]
     - [#System Exit|System Exit]
     - [#Switch To Application|Switch To Application]
@@ -149,7 +150,7 @@ class RemoteSwingLibrary(object):
 
     ROBOT_LIBRARY_SCOPE = 'GLOBAL'
     KEYWORDS = ['system_exit', 'start_application', 'application_started', 'switch_to_application',
-                'ensure_application_should_close']
+                'ensure_application_should_close', 'log_java_system_properties']
     REMOTES = {}
     CURRENT = None
     PROCESS = Process()
@@ -331,6 +332,13 @@ class RemoteSwingLibrary(object):
         The application is identified using the alias.
         Subsequent keywords will be passed on to this application."""
         RemoteSwingLibrary.CURRENT = alias
+
+    def log_java_system_properties(self):
+        """ log and return java properties and environment information from the current java application.
+        """
+        env = self._run_from_services('getEnvironment')
+        logger.info(env)
+        return env
 
     def get_keyword_names(self):
         if self.current:
