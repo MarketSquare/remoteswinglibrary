@@ -5,10 +5,10 @@ Resource  ../resource.robot    # outside of repo. Contains real username and pas
 
 *** Test Cases ***
 Connecting to another machine
-   Open Connection   127.0.0.1
+   Open Connection   ${REMOTEIP}
    Login     ${USERNAME}  ${PASSWORD}
    Put File  ${REMOTESWINGLIBRARYPATH}   remoteswinglibrary.jar
-   Write     java -javaagent:remoteswinglibrary.jar=127.0.0.1:${REMOTESWINGLIBRARYPORT}:DEBUG -jar remoteswinglibrary.jar
+   Write     xvfb-run java -javaagent:remoteswinglibrary.jar=${MYIP}:${REMOTESWINGLIBRARYPORT}:DEBUG -jar remoteswinglibrary.jar
    Application Started    myjar   timeout=5 seconds
    System Exit
    [Teardown]   Tearing
