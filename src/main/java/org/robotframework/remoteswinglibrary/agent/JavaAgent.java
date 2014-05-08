@@ -48,7 +48,12 @@ public class JavaAgent {
 
 	public static void premain(String agentArgument, Instrumentation instrumentation){
             try {
-                noOutput();
+                String[] args = agentArgument.split(":");
+                if(args.length >= 3 && "DEBUG".equals(args[2])){
+                    RemoteServer.configureLogging();
+                }else{
+                    noOutput();
+                }
                 RemoteServer server = new DaemonRemoteServer();
                 server.putLibrary("/RPC2", new SwingLibrary());
                 server.putLibrary("/services", new ServicesLibrary());
@@ -59,7 +64,7 @@ public class JavaAgent {
                     SunToolkit.createNewAppContext();
                 }
                 Integer actualPort = server.getLocalPort();
-                notifyPort(actualPort, getRemoteSwingLibraryHost(agentArgument), getRemoteSwingLibraryPort(agentArgument));
+                notifyPort(actualPort, args[0], getRemoteSwingLibraryPort(args[1]));
             } catch (Exception e) {
                     e.printStackTrace();
                     System.err.println(e);
@@ -101,18 +106,14 @@ public class JavaAgent {
             return "Unknown";
           }
 
-	private static int getRemoteSwingLibraryPort(String agentArgument) {
+	private static int getRemoteSwingLibraryPort(String port) {
 		try{
-			return Integer.parseInt(agentArgument.split(":")[1]);
+			return Integer.parseInt(port);
 		}catch(NumberFormatException e){
 			return DEFAULT_REMOTESWINGLIBRARY_PORT;
 		}
 	}
 
-        private static String getRemoteSwingLibraryHost(String agentArgument) {
-            return agentArgument.split(":")[0];
-        }
-        
 	// Silence stdout, some clients expect the output to be valid XML
 	private static void noOutput() {
 		Logger root = Logger.getRootLogger();

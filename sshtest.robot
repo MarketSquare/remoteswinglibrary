@@ -8,7 +8,7 @@ Connecting to another machine
    Open Connection   127.0.0.1
    Login     ${USERNAME}  ${PASSWORD}
    Put File  ${REMOTESWINGLIBRARYPATH}   remoteswinglibrary.jar
-   Write     java -javaagent:remoteswinglibrary.jar=127.0.0.1:${REMOTESWINGLIBRARYPORT} -jar remoteswinglibrary.jar
+   Write     java -javaagent:remoteswinglibrary.jar=127.0.0.1:${REMOTESWINGLIBRARYPORT}:DEBUG -jar remoteswinglibrary.jar
    Application Started    myjar   timeout=5 seconds
    System Exit
    [Teardown]   Tearing
