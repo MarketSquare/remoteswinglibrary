@@ -186,7 +186,7 @@ class RemoteSwingLibrary(object):
         return self.REMOTES[self.CURRENT][0]
 
     def _start_port_server(self, port):
-        address = ('127.0.0.1', int(port))
+        address = ('0.0.0.0', int(port))
         server = SocketServer.TCPServer(address, SimpleServer)
         server.allow_reuse_address = True
         t = threading.Thread(target=server.serve_forever)
