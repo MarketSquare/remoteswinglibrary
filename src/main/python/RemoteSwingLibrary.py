@@ -161,15 +161,16 @@ class RemoteSwingLibrary(object):
 
     def __init__(self, port=None, debug=False):
         """
-        port: optional port for the server receiving connections from remote agents
-        debug: optional flag that will start agent in mode with more logging for troubleshooting (set to TRUE to enable)
+        *port*: optional port for the server receiving connections from remote agents
+
+        *debug*: optional flag that will start agent in mode with more logging for troubleshooting (set to TRUE to enable)
 
         NOTE! with special value 'TEST' starts a test application for documentation generation
         purposes `python -m robot.libdoc RemoteSwingLibrary::TEST RemoteSwingLibrary.html`
         """
         if RemoteSwingLibrary.PORT is None:
             RemoteSwingLibrary.PORT = self._start_port_server(0 if port == 'TEST' else port or 0)
-        self._set_env(bool(debug))
+        self._set_env(bool(debug), port != 'TEST')
         if port == 'TEST':
             self.start_application('docgenerator', 'java -jar %s' % RemoteSwingLibrary.AGENT_PATH, timeout=1.0)
 
@@ -188,13 +189,14 @@ class RemoteSwingLibrary(object):
         t.start()
         return server.server_address[1]
 
-    def _set_env(self, debug):
+    def _set_env(self, debug, robot_running=True):
         agent_command = '-javaagent:%s=127.0.0.1:%s' % (RemoteSwingLibrary.AGENT_PATH, RemoteSwingLibrary.PORT)
         if debug:
             agent_command += ':DEBUG'
         os.environ['JAVA_TOOL_OPTIONS'] = agent_command
-        BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPATH}', RemoteSwingLibrary.AGENT_PATH)
-        BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPORT}', RemoteSwingLibrary.PORT)
+        if robot_running:
+            BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPATH}', RemoteSwingLibrary.AGENT_PATH)
+            BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPORT}', RemoteSwingLibrary.PORT)
         logger.info(agent_command)
 
     def start_application(self, alias, command, timeout=60, name_contains=None):
