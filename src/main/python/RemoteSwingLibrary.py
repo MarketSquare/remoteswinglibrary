@@ -124,6 +124,11 @@ class RemoteSwingLibrary(object):
     - [#System Exit|System Exit]
     - [#Switch To Application|Switch To Application]
 
+    RemoteSwingLibrary also introduces two global variables that can be used during testing:
+    - ${REMOTESWINGLIBRARYPATH} the location of the remoteswinglibrary jar file.
+    - ${REMOTESWINGLIBRARYPORT} port used by the agents to communicate with the library - this is needed if a java agent
+    is started for example from another machine.
+
     [https://github.com/ombre42/jrobotremoteserver|jrobotremoteserver]
     that is used by RemoteSwingLibrary also offers a keyword:
     - [#Stop Remote Server|Stop Remote Server]
