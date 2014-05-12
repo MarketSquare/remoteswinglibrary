@@ -1,10 +1,7 @@
 RemoteSwingLibrary
 ==================
 
-`Robot Framework`_ library for connecting to a java process and using `SwingLibrary`_.
-
-.. _Robot Framework: http://robotframework.org
-.. _SwingLibrary: https://github.com/robotframework/SwingLibrary
+`Robot Framework <http://robotframework.org>` library for connecting to a java process and using `SwingLibrary <https://github.com/robotframework/SwingLibrary>`.
 
 Installation
 ------------
