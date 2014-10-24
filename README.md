@@ -7,15 +7,15 @@ This library allows you to use pybot (Python version of Robot Framework) to run 
 
 You can connect to applications running on your local machine or even on a [different machine](https://github.com/robotframework/remoteswinglibrary/blob/master/sshtest.robot).
 
-RemoteSwingLibrary works also with Java Web Start applications.
+RemoteSwingLibrary works also with Java Web Start applications. One of its intended usages is deprecating [RemoteApplications](https://github.com/robotframework/RemoteApplications) library.
 
 Installation
 ------------
 
-* Download latest RemoteSwingLibrary and documentation from https://github.com/robotframework/remoteswinglibrary/releases/tag/1.1.1
+* Download latest RemoteSwingLibrary and documentation from https://github.com/robotframework/remoteswinglibrary/releases/
 * Add downloaded jar to PYTHONPATH
 * After that, you can import the library in your test cases:
-    ```
+    ```robotframework
     *** Settings ***
     Library    RemoteSwingLibrary
     
