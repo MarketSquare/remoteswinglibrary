@@ -13,13 +13,22 @@ Starting and stopping application with main window
      Start Application    myapp2    java org.robotframework.remoteswinglibrary.MySwingApp  timeout=5 seconds
      System Exit
 
+Start application removes the JAVA_TOOL_OPTIONS from enviroment
+     Set environment variable    JAVA_TOOL_OPTIONS   ${EMPTY}
+     Start Application    myapp2    java org.robotframework.remoteswinglibrary.MySwingApp  timeout=5 seconds
+     Should be equal    %{JAVA_TOOL_OPTIONS}    ${EMPTY}
+     System Exit
+
 Connecting to a started application
+     Set java tool options
      ${handle}=  Start Process   java org.robotframework.remoteswinglibrary.MySwingApp   shell=True
      Application Started     myjava
      Exit and check process   ${handle}    myjava
+     Set environment variable    JAVA_TOOL_OPTIONS   ${EMPTY}
 
 Connecting to a specific application
      [Timeout]    30 seconds
+     Set java tool options
      ${handle1}=  Start Process   java org.robotframework.remoteswinglibrary.MySwingApp one    shell=True
      ${handle2}=  Start Process   java org.robotframework.remoteswinglibrary.MySwingApp two    shell=True
      ${handle3}=  Start Process   java org.robotframework.remoteswinglibrary.MySwingApp three  shell=True
@@ -29,6 +38,7 @@ Connecting to a specific application
      Exit and check process    ${handle2}   two
      Exit and check process    ${handle3}   three
      Exit and check process    ${handle1}   one
+     Set environment variable    JAVA_TOOL_OPTIONS   ${EMPTY}
 
 Connecting to an application and using java agent option
     [Timeout]    20 seconds

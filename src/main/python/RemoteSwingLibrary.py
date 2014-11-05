@@ -17,10 +17,11 @@ import inspect
 import os
 import threading
 import time
+import traceback
 import SocketServer
 from xmlrpclib import ProtocolError
 import robot
-from robot.errors import HandlerExecutionFailed
+from robot.errors import HandlerExecutionFailed, TimeoutError
 from robot.variables import GLOBAL_VARIABLES
 from robot.libraries.Process import Process
 from robot.libraries.Remote import Remote
@@ -31,8 +32,36 @@ from robot.libraries.BuiltIn import BuiltIn, run_keyword_variant
 from robot.api import logger
 
 
-REMOTE_AGENTS_LIST = []
-EXPECTED_AGENT_RECEIVED = threading.Event()
+class AgentList(object):
+
+    def __init__(self):
+        self._remote_agents = []
+        self.agent_received = threading.Event()
+        self._lock = threading.RLock()
+
+    def append(self, address, name):
+        with self._lock:
+            self.agent_received.set()
+            self._remote_agents.append((address, name, 'NEW'))
+
+    def remove(self, address, name, age):
+        with self._lock:
+            self._remote_agents.remove((address, name, age))
+
+    def get(self, accept_old):
+        with self._lock:
+            return [(address, name, age) for (address, name, age) in self._remote_agents
+                    if accept_old or age == 'NEW']
+
+    # FIXME: remove list()
+    def set_received_to_old(self):
+        with self._lock:
+            self.agent_received.clear()
+            for index, (address, name, age) in enumerate(list(self._remote_agents)):
+                self._remote_agents[index] = (address, name, 'OLD')
+
+
+REMOTE_AGENTS_LIST = AgentList()
 
 class SimpleServer(SocketServer.BaseRequestHandler):
 
@@ -42,8 +71,7 @@ class SimpleServer(SocketServer.BaseRequestHandler):
         address = ':'.join([self.client_address[0], port])
         print '*DEBUG:%d* Registered java remoteswinglibrary agent "%s" at %s' % \
               (time.time()*1000, name, address)
-        REMOTE_AGENTS_LIST.append((address, name))
-        EXPECTED_AGENT_RECEIVED.set()
+        REMOTE_AGENTS_LIST.append(address, name)
         self.request.sendall(data)
 
     def read_socket(self):
@@ -155,7 +183,7 @@ class RemoteSwingLibrary(object):
 
     ROBOT_LIBRARY_SCOPE = 'GLOBAL'
     KEYWORDS = ['system_exit', 'start_application', 'application_started', 'switch_to_application',
-                'ensure_application_should_close', 'log_java_system_properties']
+                'ensure_application_should_close', 'log_java_system_properties', 'set_java_tool_options']
     REMOTES = {}
     CURRENT = None
     PROCESS = Process()
@@ -175,7 +203,7 @@ class RemoteSwingLibrary(object):
         """
         if RemoteSwingLibrary.PORT is None:
             RemoteSwingLibrary.PORT = self._start_port_server(0 if port == 'TEST' else port or 0)
-        self._set_env(bool(debug), port != 'TEST')
+        self._create_env(bool(debug), port != 'TEST')
         if port == 'TEST':
             self.start_application('docgenerator', 'java -jar %s' % RemoteSwingLibrary.AGENT_PATH, timeout=1.0)
 
@@ -194,15 +222,39 @@ class RemoteSwingLibrary(object):
         t.start()
         return server.server_address[1]
 
-    def _set_env(self, debug, robot_running=True):
+    def _create_env(self, debug, robot_running=True):
         agent_command = '-javaagent:%s=127.0.0.1:%s' % (RemoteSwingLibrary.AGENT_PATH, RemoteSwingLibrary.PORT)
         if debug:
             agent_command += ':DEBUG'
-        os.environ['JAVA_TOOL_OPTIONS'] = agent_command
+        self._agent_command = agent_command
         if robot_running:
             BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPATH}', RemoteSwingLibrary.AGENT_PATH)
             BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPORT}', RemoteSwingLibrary.PORT)
         logger.info(agent_command)
+
+    @contextmanager
+    def _agent_java_tool_options(self):
+        old_options = os.environ.get('JAVA_TOOL_OPTIONS', '')
+        logger.debug("Picked old JAVA_TOOL_OPTIONS='%s'" % old_options)
+        self.set_java_tool_options()
+        try:
+            yield
+        finally:
+            os.environ['JAVA_TOOL_OPTIONS'] = old_options
+            logger.debug("Returned old JAVA_TOOL_OPTIONS='%s'" % old_options)
+
+    def set_java_tool_options(self):
+        """Sets the JAVA_TOOL_OPTIONS to include RemoteSwingLibrary Agent.
+
+        RemoteSwingLibrary Agent is normally enabled by `Start Application` by
+        setting the JAVA_TOOL_OPTIONS environment variable only during
+        that keyword call. So java processes started by other commands wont
+        normally use the RemoteSwingLibrary Agent. This keyword sets that same
+        environment variable to be used always. So all java processes started
+        after this will use the Agent.
+        """
+        os.environ['JAVA_TOOL_OPTIONS'] = self._agent_command
+        logger.debug("Set JAVA_TOOL_OPTIONS='%s'" % self._agent_command)
 
     def start_application(self, alias, command, timeout=60, name_contains=None):
         """Starts the process in the `command` parameter  on the host operating system.
@@ -214,11 +266,16 @@ class RemoteSwingLibrary(object):
         To see the name of the connecting java agents run tests with --loglevel DEBUG.
 
         """
-        EXPECTED_AGENT_RECEIVED.clear() # We are going to wait for a specific agent
-        self.PROCESS.start_process(command, alias=alias, shell=True)
+        REMOTE_AGENTS_LIST.set_received_to_old()
+        with self._agent_java_tool_options():
+            self.PROCESS.start_process(command, alias=alias, shell=True)
         try:
-            self.application_started(alias, timeout=timeout, name_contains=name_contains)
-        except:
+            self._application_started(alias, timeout=timeout, name_contains=name_contains, accept_old=False)
+        except TimeoutError:
+            raise
+        except Exception:
+            logger.debug("Failed to start application: %s" % traceback.format_exc())
+            # FIXME: this may hang, how is that possible?
             result = self.PROCESS.wait_for_process(timeout=0.01)
             if result:
                 logger.info('STDOUT: %s' % result.stdout)
@@ -232,8 +289,11 @@ class RemoteSwingLibrary(object):
         using the Start Application -keyword. The given alias is stored to identify the
         started application in RemoteSwingLibrary.
         Subsequent keywords will be passed on to this application."""
+        self._application_started(alias, timeout, name_contains, accept_old=True)
+
+    def _application_started(self, alias, timeout=60, name_contains=None, accept_old=True):
         self.TIMEOUT = robot.utils.timestr_to_secs(timeout)
-        url = self._get_agent_address(name_contains)
+        url = self._get_agent_address(name_contains, accept_old)
         logger.info('connecting to started application at %s' % url)
         self._initialize_remote_libraries(alias, url)
         RemoteSwingLibrary.CURRENT = alias
@@ -248,17 +308,17 @@ class RemoteSwingLibrary(object):
         logger.debug('remote services instantiated')
         self.REMOTES[alias] = [swinglibrary, services]
 
-    def _get_agent_address(self, name_pattern):
+    def _get_agent_address(self, name_pattern, accept_old):
         while True:
-            if not REMOTE_AGENTS_LIST:
-                EXPECTED_AGENT_RECEIVED.clear()
-            EXPECTED_AGENT_RECEIVED.wait(
+            if not REMOTE_AGENTS_LIST.get(accept_old):
+                REMOTE_AGENTS_LIST.agent_received.clear()
+            REMOTE_AGENTS_LIST.agent_received.wait(
                 timeout=self.TIMEOUT) # Ensure that a waited agent is the one we are receiving and not some older one
-            if not EXPECTED_AGENT_RECEIVED.isSet():
+            if not REMOTE_AGENTS_LIST.agent_received.isSet():
                 raise RemoteSwingLibraryTimeoutError('Agent port not received before timeout')
-            for address, name in reversed(REMOTE_AGENTS_LIST):
+            for address, name, age in reversed(REMOTE_AGENTS_LIST.get(accept_old)):
                 if name_pattern is None or name_pattern in name:
-                    REMOTE_AGENTS_LIST.remove((address, name))
+                    REMOTE_AGENTS_LIST.remove(address, name, age)
                     return address
             time.sleep(0.1)
 
