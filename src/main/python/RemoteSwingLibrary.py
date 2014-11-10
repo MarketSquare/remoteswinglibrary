@@ -125,9 +125,13 @@ class RobotLibraryImporter(object):
         return OldRobotImporterWrapper()
 
     def _remove_lib_from_current_namespace(self, name):
-        testlibs = EXECUTION_CONTEXTS.current.namespace._testlibs
-        if testlibs.has_key(name):
-            del(testlibs[name])
+        ns = EXECUTION_CONTEXTS.current.namespace
+        if hasattr(ns, '_kw_store'):  # RF 2.8.6+
+            testlibs = ns._kw_store.libraries
+        else:
+            testlibs = ns._testlibs
+        if name in testlibs:
+            testlibs.pop(name)
 
 
 class RemoteSwingLibraryTimeoutError(RuntimeError):
