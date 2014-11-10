@@ -20,7 +20,7 @@ import time
 import traceback
 import SocketServer
 from xmlrpclib import ProtocolError
-import robot
+
 from robot.errors import HandlerExecutionFailed, TimeoutError
 from robot.variables import GLOBAL_VARIABLES
 from robot.libraries.Process import Process
@@ -30,9 +30,12 @@ from robot.running.namespace import IMPORTER
 from robot.running.testlibraries import TestLibrary
 from robot.libraries.BuiltIn import BuiltIn, run_keyword_variant
 from robot.api import logger
+from robot.utils import timestr_to_secs, get_link_path
 
 
 class AgentList(object):
+    NEW = 'NEW'
+    OLD = 'OLD'
 
     def __init__(self):
         self._remote_agents = []
@@ -42,7 +45,7 @@ class AgentList(object):
     def append(self, address, name):
         with self._lock:
             self.agent_received.set()
-            self._remote_agents.append((address, name, 'NEW'))
+            self._remote_agents.append((address, name, self.NEW))
 
     def remove(self, address, name, age):
         with self._lock:
@@ -51,14 +54,13 @@ class AgentList(object):
     def get(self, accept_old):
         with self._lock:
             return [(address, name, age) for (address, name, age) in self._remote_agents
-                    if accept_old or age == 'NEW']
+                    if accept_old or age == self.NEW]
 
-    # FIXME: remove list()
     def set_received_to_old(self):
         with self._lock:
             self.agent_received.clear()
-            for index, (address, name, age) in enumerate(list(self._remote_agents)):
-                self._remote_agents[index] = (address, name, 'OLD')
+            for index, (address, name, age) in enumerate(self._remote_agents):
+                self._remote_agents[index] = (address, name, self.OLD)
 
 
 REMOTE_AGENTS_LIST = AgentList()
@@ -69,6 +71,7 @@ class SimpleServer(SocketServer.BaseRequestHandler):
         data = ''.join(iter(self.read_socket, ''))
         port, name = data.decode().split(':', 1)
         address = ':'.join([self.client_address[0], port])
+        # FIXME: use new thread logging helper
         print '*DEBUG:%d* Registered java remoteswinglibrary agent "%s" at %s' % \
               (time.time()*1000, name, address)
         REMOTE_AGENTS_LIST.append(address, name)
@@ -278,14 +281,14 @@ class RemoteSwingLibrary(object):
         except TimeoutError:
             raise
         except Exception:
-            logger.debug("Failed to start application: %s" % traceback.format_exc())
+            logger.info("Failed to start application: %s" % traceback.format_exc())
             # FIXME: this may hang, how is that possible?
             result = self.PROCESS.wait_for_process(timeout=0.01)
             if result:
                 logger.info('STDOUT: %s' % result.stdout)
                 logger.info('STDERR: %s' % result.stderr)
             else:
-                print "Process is running, but application startup failed"
+                logger.info("Process is running, but application startup failed")
             raise
 
     def application_started(self, alias, timeout=60, name_contains=None):
@@ -296,7 +299,7 @@ class RemoteSwingLibrary(object):
         self._application_started(alias, timeout, name_contains, accept_old=True)
 
     def _application_started(self, alias, timeout=60, name_contains=None, accept_old=True):
-        self.TIMEOUT = robot.utils.timestr_to_secs(timeout)
+        self.TIMEOUT = timestr_to_secs(timeout)
         url = self._get_agent_address(name_contains, accept_old)
         logger.info('connecting to started application at %s' % url)
         self._initialize_remote_libraries(alias, url)
@@ -349,7 +352,7 @@ class RemoteSwingLibrary(object):
         with self._run_and_ignore_connection_lost():
             BuiltIn().run_keyword(kw, *args)
         try:
-            self._application_should_be_closed(timeout=robot.utils.timestr_to_secs(timeout))
+            self._application_should_be_closed(timeout=timestr_to_secs(timeout))
         except RemoteSwingLibraryTimeoutError, t:
             logger.warn('Application is not closed before timeout - killing application')
             self._take_screenshot()
@@ -360,7 +363,7 @@ class RemoteSwingLibrary(object):
         logdir = self._get_log_dir()
         filepath = os.path.join(logdir, 'remoteswinglibrary-screenshot%s.png' % long(time.time()*1000))
         self._run_from_services('takeScreenshot', filepath)
-        logger.info('<img src="%s"></img>' % robot.utils.get_link_path(filepath, logdir), html=True)
+        logger.info('<img src="%s"></img>' % get_link_path(filepath, logdir), html=True)
 
     # Copied from Selenium2Library _logging.py module ( a6e2c7fbb9098eb6e2e6ccaadb4dbfdbe26542a6 )
     def _get_log_dir(self):

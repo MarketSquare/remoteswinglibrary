@@ -209,7 +209,7 @@
             <configuration>
                 <logLevel>DEBUG</logLevel>
                 <extraPathDirectories>
-                    <extraPathDirectory>target/remoteswinglibrary-1.2.0.jar</extraPathDirectory>
+                    <extraPathDirectory>target/remoteswinglibrary-${project.version}.jar</extraPathDirectory>
                 </extraPathDirectories>
             </configuration>
         </plugin>
