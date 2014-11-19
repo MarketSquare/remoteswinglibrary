@@ -199,6 +199,9 @@ class RemoteSwingLibrary(object):
     PORT = None
     AGENT_PATH = os.path.abspath(os.path.dirname(__file__))
 
+    def _escape_path(self, text):
+        return text.replace("\\","\\\\")
+    
     def __init__(self, port=None, debug=False):
         """
         *port*: optional port for the server receiving connections from remote agents
@@ -230,12 +233,12 @@ class RemoteSwingLibrary(object):
         return server.server_address[1]
 
     def _create_env(self, debug, robot_running=True):
-        agent_command = '-javaagent:%s=127.0.0.1:%s' % (RemoteSwingLibrary.AGENT_PATH, RemoteSwingLibrary.PORT)
+        agent_command = '-javaagent:"%s"=127.0.0.1:%s' % (RemoteSwingLibrary.AGENT_PATH, RemoteSwingLibrary.PORT)
         if debug:
             agent_command += ':DEBUG'
         self._agent_command = agent_command
         if robot_running:
-            BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPATH}', RemoteSwingLibrary.AGENT_PATH)
+            BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPATH}', self._escape_path(RemoteSwingLibrary.AGENT_PATH))
             BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPORT}', RemoteSwingLibrary.PORT)
         logger.info(agent_command)
 
