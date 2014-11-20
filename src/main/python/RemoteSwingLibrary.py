@@ -199,9 +199,6 @@ class RemoteSwingLibrary(object):
     PORT = None
     AGENT_PATH = os.path.abspath(os.path.dirname(__file__))
 
-    def _escape_path(self, text):
-        return text.replace("\\","\\\\")
-    
     def __init__(self, port=None, debug=False):
         """
         *port*: optional port for the server receiving connections from remote agents
@@ -241,6 +238,9 @@ class RemoteSwingLibrary(object):
             BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPATH}', self._escape_path(RemoteSwingLibrary.AGENT_PATH))
             BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPORT}', RemoteSwingLibrary.PORT)
         logger.info(agent_command)
+
+    def _escape_path(self, text):
+        return text.replace("\\","\\\\")
 
     @contextmanager
     def _agent_java_tool_options(self):
@@ -322,8 +322,7 @@ class RemoteSwingLibrary(object):
         while True:
             if not REMOTE_AGENTS_LIST.get(accept_old):
                 REMOTE_AGENTS_LIST.agent_received.clear()
-            REMOTE_AGENTS_LIST.agent_received.wait(
-                timeout=self.TIMEOUT) # Ensure that a waited agent is the one we are receiving and not some older one
+            REMOTE_AGENTS_LIST.agent_received.wait(timeout=self.TIMEOUT)
             if not REMOTE_AGENTS_LIST.agent_received.isSet():
                 raise RemoteSwingLibraryTimeoutError('Agent port not received before timeout')
             for address, name, age in reversed(REMOTE_AGENTS_LIST.get(accept_old)):
