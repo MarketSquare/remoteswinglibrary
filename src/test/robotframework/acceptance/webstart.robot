@@ -3,6 +3,7 @@ Library    RemoteSwingLibrary
 Library    FileServer
 Suite Setup     FileServer.Start
 Suite Teardown    FileServer.Stop
+Force tags      Webstart
 
 *** Variables ***
 ${WEBSTART DIR}=    ${CURDIR}/webstart
