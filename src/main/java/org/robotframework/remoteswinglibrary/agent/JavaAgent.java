@@ -23,6 +23,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.lang.instrument.Instrumentation;
+import java.lang.ref.WeakReference;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.Map;
@@ -94,8 +95,13 @@ public class JavaAgent {
         }
 
         public boolean hasWindow(AppContext ctx) {
-            Vector window = (Vector)ctx.get(Window.class);
-            return window != null && window.size() > 0;
+            Vector<WeakReference<Window>> windowList =
+                  (Vector<WeakReference<Window>>)ctx.get(Window.class);
+            if (windowList == null)
+                return false;
+            if (windowList.get(0).get().getClass().getName().contains("SwingConsoleWindow"))
+                return false;
+            return windowList.size() > 0;
         }
     }
 
