@@ -43,97 +43,96 @@ import sun.awt.SunToolkit;
 
 public class JavaAgent {
 
-	private static final int DEFAULT_REMOTESWINGLIBRARY_PORT = 8181;
-	private static PrintStream out = System.out;
+    private static final int DEFAULT_REMOTESWINGLIBRARY_PORT = 8181;
+    private static PrintStream out = System.out;
 
-	public static void premain(String agentArgument, Instrumentation instrumentation){
-            try {
-                String[] args = agentArgument.split(":");
-                if(args.length >= 3 && "DEBUG".equals(args[2])){
-                    RemoteServer.configureLogging();
-                }else{
-                    noOutput();
-                }
-                RemoteServer server = new DaemonRemoteServer();
-                server.putLibrary("/RPC2", new SwingLibrary());
-                server.putLibrary("/services", new ServicesLibrary());
-                server.setPort(0);
-                server.setAllowStop(true);
-                server.start();
-                if(AppContext.getAppContext() == null){
-                    SunToolkit.createNewAppContext();
-                }
-                Integer actualPort = server.getLocalPort();
-                notifyPort(actualPort, args[0], getRemoteSwingLibraryPort(args[1]));
-            } catch (Exception e) {
-                    e.printStackTrace();
-                    System.err.println(e);
-                    System.err.println("Error starting remote server");
-            }finally{
-                    System.setOut(out);
+    public static void premain(String agentArgument, Instrumentation instrumentation) {
+        try {
+            String[] args = agentArgument.split(":");
+            if (args.length >= 3 && "DEBUG".equals(args[2])) {
+                RemoteServer.configureLogging();
+            } else {
+                noOutput();
             }
-	}
-        
-        public static void main(String[] args) throws InterruptedException{
-            System.out.println("This is RemoteSwingLibrary\n"
-                    + "Usage:\n"
-                    + "Add this jar file to PYTHONPATH\n"
-                    + "Import RemoteSwingLibrary in your test cases\n"
-                    + "\n"
-                    + "This program will now sleep for 5 seconds\n"
-                    + "This main is for documentation generation "
-                    + "and connection testing purposes");
-            Thread.sleep(5000);
+            RemoteServer server = new DaemonRemoteServer();
+            server.putLibrary("/RPC2", new SwingLibrary());
+            server.putLibrary("/services", new ServicesLibrary());
+            server.setPort(0);
+            server.setAllowStop(true);
+            server.start();
+            if (AppContext.getAppContext() == null) {
+                SunToolkit.createNewAppContext();
+            }
+            Integer actualPort = server.getLocalPort();
+            notifyPort(actualPort, args[0], getRemoteSwingLibraryPort(args[1]));
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println(e);
+            System.err.println("Error starting remote server");
+        } finally {
+            System.setOut(out);
         }
-        
-        private static void notifyPort(final Integer portToNotify, final String serverHost, final Integer serverPort) throws IOException {
-            Socket echoSocket = new Socket(serverHost, serverPort);
-            PrintWriter outToServer = new PrintWriter(echoSocket.getOutputStream(), true);
-            outToServer.write(portToNotify.toString()+":"+getName());
-            outToServer.close();
-            echoSocket.close();
-        }
-        
-        private static String getName() {
-            String name = System.getProperty("sun.java.command");
-            if(name != null)
-                return name;
-            for(final Map.Entry<String, String> entry : System.getenv().entrySet())
-            {
-              if(entry.getKey().startsWith("JAVA_MAIN_CLASS"))
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        System.out.println("This is RemoteSwingLibrary\n"
+                + "Usage:\n"
+                + "Add this jar file to PYTHONPATH\n"
+                + "Import RemoteSwingLibrary in your test cases\n"
+                + "\n"
+                + "This program will now sleep for 5 seconds\n"
+                + "This main is for documentation generation "
+                + "and connection testing purposes");
+        Thread.sleep(5000);
+    }
+
+    private static void notifyPort(final Integer portToNotify, final String serverHost, final Integer serverPort) throws IOException {
+        Socket echoSocket = new Socket(serverHost, serverPort);
+        PrintWriter outToServer = new PrintWriter(echoSocket.getOutputStream(), true);
+        outToServer.write(portToNotify.toString() + ":" + getName());
+        outToServer.close();
+        echoSocket.close();
+    }
+
+    private static String getName() {
+        String name = System.getProperty("sun.java.command");
+        if (name != null)
+            return name;
+        for (final Map.Entry<String, String> entry : System.getenv().entrySet()) {
+            if (entry.getKey().startsWith("JAVA_MAIN_CLASS"))
                 return entry.getValue();
+        }
+        return "Unknown";
+    }
+
+    private static int getRemoteSwingLibraryPort(String port) {
+        try {
+            return Integer.parseInt(port);
+        } catch (NumberFormatException e) {
+            return DEFAULT_REMOTESWINGLIBRARY_PORT;
+        }
+    }
+
+    // Silence stdout, some clients expect the output to be valid XML
+    private static void noOutput() {
+        Logger root = Logger.getRootLogger();
+        root.removeAllAppenders();
+        BasicConfigurator.configure();
+        root.setLevel(Level.OFF);
+        root.addAppender(new NullAppender());
+        LogFactory.releaseAll();
+        LogFactory.getFactory().setAttribute(
+                "org.apache.commons.logging.Log",
+                "org.apache.commons.logging.impl.Log4JLogger");
+        Properties p = new Properties();
+        p.setProperty("org.eclipse.jetty.LEVEL", "WARN");
+        org.eclipse.jetty.util.log.StdErrLog.setProperties(p);
+
+        // Jemmy bootstrap prints to stdout, replace with no-op while SwingLibrary is starting
+        System.setOut(new PrintStream(new OutputStream() {
+            public void write(int b) {
+                //DO NOTHING
             }
-            return "Unknown";
-          }
-
-	private static int getRemoteSwingLibraryPort(String port) {
-		try{
-			return Integer.parseInt(port);
-		}catch(NumberFormatException e){
-			return DEFAULT_REMOTESWINGLIBRARY_PORT;
-		}
-	}
-
-	// Silence stdout, some clients expect the output to be valid XML
-	private static void noOutput() {
-		Logger root = Logger.getRootLogger();
-		root.removeAllAppenders();
-		BasicConfigurator.configure();
-		root.setLevel(Level.OFF);
-		root.addAppender(new NullAppender());
-		LogFactory.releaseAll();
-		LogFactory.getFactory().setAttribute(
-                        "org.apache.commons.logging.Log",
-			"org.apache.commons.logging.impl.Log4JLogger");
-		Properties p = new Properties();
-		p.setProperty("org.eclipse.jetty.LEVEL", "WARN");
-		org.eclipse.jetty.util.log.StdErrLog.setProperties(p);
-
-		// Jemmy bootstrap prints to stdout, replace with no-op while SwingLibrary is starting
-		System.setOut(new PrintStream(new OutputStream() {
-			public void write(int b) {
-				//DO NOTHING
-			}
-		}));
-	}
+        }));
+    }
 }
