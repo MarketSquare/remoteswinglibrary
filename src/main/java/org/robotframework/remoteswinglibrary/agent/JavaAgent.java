@@ -99,9 +99,11 @@ public class JavaAgent {
                   (Vector<WeakReference<Window>>)ctx.get(Window.class);
             if (windowList == null)
                 return false;
-            if (windowList.get(0).get().getClass().getName().contains("SwingConsoleWindow"))
+		    if (windowList.size() < 1)
+				return false;
+            if (windowList.get(0).get().getClass().getName().contains("ConsoleWindow"))
                 return false;
-            return windowList.size() > 0;
+			return true;
         }
     }
 
