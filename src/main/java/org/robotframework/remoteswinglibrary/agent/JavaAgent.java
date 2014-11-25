@@ -97,10 +97,8 @@ public class JavaAgent {
         public boolean hasWindow(AppContext ctx) {
             Vector<WeakReference<Window>> windowList =
                   (Vector<WeakReference<Window>>)ctx.get(Window.class);
-            if (windowList == null)
+            if (windowList == null || windowList.size() < 1)
                 return false;
-		    if (windowList.size() < 1)
-				return false;
             if (windowList.get(0).get().getClass().getName().contains("ConsoleWindow"))
                 return false;
 			return true;
