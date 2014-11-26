@@ -49,7 +49,6 @@ public class JavaAgent {
 
     private static final int DEFAULT_REMOTESWINGLIBRARY_PORT = 8181;
     private static PrintStream out = System.out;
-
     public static void premain(String agentArgument, Instrumentation instrumentation) {
         try {
             Thread findAppContext = new Thread(new FindAppContextWithWindow(agentArgument.split(":")));
@@ -103,7 +102,7 @@ public class JavaAgent {
                 Window window = ref.get();
                 logWindowDetails("Trying to connect to", window);
                 if (isFrame(window)
-                    && window.isShowing()
+                    && window.isVisible()
                     && !isConsoleWindow(window)) {
                     logWindowDetails("Connected to", window);
                     return true;
@@ -115,7 +114,7 @@ public class JavaAgent {
         private void logWindowDetails(String message, Window window) {
             System.err.println(message+" Class:"+window.getClass().getName()
                     + " Name:"+window.getName()
-                    + " Showing:"+window.isShowing()
+                    + " Visible:"+window.isVisible()
                     + " AppContext:"+AppContext.getAppContext());
         }
 
