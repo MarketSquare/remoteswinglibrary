@@ -20,6 +20,7 @@ import time
 import traceback
 import SocketServer
 from xmlrpclib import ProtocolError
+import uuid
 
 from robot.errors import HandlerExecutionFailed, TimeoutError
 from robot.variables import GLOBAL_VARIABLES
@@ -198,6 +199,7 @@ class RemoteSwingLibrary(object):
     TIMEOUT = 60
     PORT = None
     AGENT_PATH = os.path.abspath(os.path.dirname(__file__))
+    _output_dir = ''
 
     def __init__(self, port=None, debug=False):
         """
@@ -237,7 +239,9 @@ class RemoteSwingLibrary(object):
         if robot_running:
             BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPATH}', self._escape_path(RemoteSwingLibrary.AGENT_PATH))
             BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPORT}', RemoteSwingLibrary.PORT)
+            self._output_dir = BuiltIn().get_variable_value('${OUTPUTDIR}')
         logger.info(agent_command)
+
 
     def _escape_path(self, text):
         return text.replace("\\","\\\\")
@@ -276,9 +280,11 @@ class RemoteSwingLibrary(object):
         To see the name of the connecting java agents run tests with --loglevel DEBUG.
 
         """
+        stdout = os.path.join(self._output_dir, "stdout_" + str(uuid.uuid4()) + '.txt')
+        stderr = os.path.join(self._output_dir, "stderr_" + str(uuid.uuid4()) + '.txt')
         REMOTE_AGENTS_LIST.set_received_to_old()
         with self._agent_java_tool_options():
-            self.PROCESS.start_process(command, alias=alias, shell=True)
+            self.PROCESS.start_process(command, alias=alias, shell=True, stdout=stdout, stderr=stderr)
         try:
             self._application_started(alias, timeout=timeout, name_contains=name_contains, accept_old=False)
         except TimeoutError:
