@@ -17,7 +17,7 @@
 
 package org.robotframework.remoteswinglibrary.agent;
 
-import java.awt.Window;
+import java.awt.*;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -85,7 +85,7 @@ public class JavaAgent {
             while (true) {
                 Set<AppContext> ctxs = AppContext.getAppContexts();
                 for (AppContext ctx:ctxs) {
-                    if (hasWindow(ctx)) {
+                    if (hasMainWindow(ctx)) {
                         return ctx;
                     }
                 }
@@ -94,14 +94,28 @@ public class JavaAgent {
 
         }
 
-        public boolean hasWindow(AppContext ctx) {
+        public boolean hasMainWindow(AppContext ctx) {
             Vector<WeakReference<Window>> windowList =
                   (Vector<WeakReference<Window>>)ctx.get(Window.class);
-            if (windowList == null || windowList.size() < 1)
+            if (windowList == null)
                 return false;
-            if (windowList.get(0).get().getClass().getName().contains("ConsoleWindow"))
-                return false;
-			return true;
+            for (WeakReference<Window> ref:windowList) {
+                Window window = ref.get();
+                if (isFrame(window)
+                    && window.isShowing()
+                    && !isConsoleWindow(window)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private boolean isFrame(Window window) {
+            return window instanceof Frame;
+        }
+
+        private boolean isConsoleWindow(Window window) {
+            return window.getClass().getName().contains("ConsoleWindow");
         }
     }
 
@@ -114,13 +128,7 @@ public class JavaAgent {
         }
 
         public void run()  {
-
             try {
-                if (args.length >= 3 && "DEBUG".equals(args[2])) {
-                    RemoteServer.configureLogging();
-                } else {
-                    noOutput();
-                }
                 RemoteServer server = new DaemonRemoteServer();
                 server.putLibrary("/RPC2", new SwingLibrary());
                 server.putLibrary("/services", new ServicesLibrary());
@@ -163,29 +171,6 @@ public class JavaAgent {
             } catch (NumberFormatException e) {
                 return DEFAULT_REMOTESWINGLIBRARY_PORT;
             }
-        }
-
-        // Silence stdout, some clients expect the output to be valid XML
-        private static void noOutput() {
-            Logger root = Logger.getRootLogger();
-            root.removeAllAppenders();
-            BasicConfigurator.configure();
-            root.setLevel(Level.OFF);
-            root.addAppender(new NullAppender());
-            LogFactory.releaseAll();
-            LogFactory.getFactory().setAttribute(
-                    "org.apache.commons.logging.Log",
-                    "org.apache.commons.logging.impl.Log4JLogger");
-            Properties p = new Properties();
-            p.setProperty("org.eclipse.jetty.LEVEL", "WARN");
-            org.eclipse.jetty.util.log.StdErrLog.setProperties(p);
-
-            // Jemmy bootstrap prints to stdout, replace with no-op while SwingLibrary is starting
-            System.setOut(new PrintStream(new OutputStream() {
-                public void write(int b) {
-                    //DO NOTHING
-                }
-            }));
         }
     }
 
