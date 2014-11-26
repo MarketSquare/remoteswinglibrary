@@ -101,13 +101,22 @@ public class JavaAgent {
                 return false;
             for (WeakReference<Window> ref:windowList) {
                 Window window = ref.get();
+                logWindowDetails("Trying to connect to", window);
                 if (isFrame(window)
                     && window.isShowing()
                     && !isConsoleWindow(window)) {
+                    logWindowDetails("Connected to", window);
                     return true;
                 }
             }
             return false;
+        }
+
+        private void logWindowDetails(String message, Window window) {
+            System.err.println(message+" Class:"+window.getClass().getName()
+                    + " Name:"+window.getName()
+                    + " Showing:"+window.isShowing()
+                    + " AppContext:"+AppContext.getAppContext());
         }
 
         private boolean isFrame(Window window) {
