@@ -280,11 +280,15 @@ class RemoteSwingLibrary(object):
         To see the name of the connecting java agents run tests with --loglevel DEBUG.
 
         """
-        stdout = os.path.join(self._output_dir, "stdout_" + str(uuid.uuid4()) + '.txt')
-        stderr = os.path.join(self._output_dir, "stderr_" + str(uuid.uuid4()) + '.txt')
+        stdout = "remote_stdout_" + str(uuid.uuid4()) + '.txt'
+        stderr = "remote_stderr_" + str(uuid.uuid4()) + '.txt'
+        logger.info('<a href="%s">stdout from process</a>' % stdout, html=True)
+        logger.info('<a href="%s">stderr from process</a>' % stderr, html=True)
         REMOTE_AGENTS_LIST.set_received_to_old()
         with self._agent_java_tool_options():
-            self.PROCESS.start_process(command, alias=alias, shell=True, stdout=stdout, stderr=stderr)
+            self.PROCESS.start_process(command, alias=alias, shell=True,
+                                       stdout=self._output(stdout),
+                                       stderr=self._output(stderr))
         try:
             self._application_started(alias, timeout=timeout, name_contains=name_contains, accept_old=False)
         except TimeoutError:
@@ -299,6 +303,9 @@ class RemoteSwingLibrary(object):
             else:
                 logger.info("Process is running, but application startup failed")
             raise
+
+    def _output(self, filename):
+        return os.path.join(self._output_dir, filename)
 
     def application_started(self, alias, timeout=60, name_contains=None):
         """Detects new RemoteSwingLibrary Java-agents in applications that are started without
