@@ -30,8 +30,9 @@ from robot.running import EXECUTION_CONTEXTS
 from robot.running.namespace import IMPORTER
 from robot.running.testlibraries import TestLibrary
 from robot.libraries.BuiltIn import BuiltIn, run_keyword_variant
-from robot.api import logger
 from robot.utils import timestr_to_secs, get_link_path
+from robotbackgroundlogger import BackgroundLogger
+logger = BackgroundLogger()
 
 
 class AgentList(object):
@@ -54,6 +55,7 @@ class AgentList(object):
 
     def get(self, accept_old):
         with self._lock:
+            logger.log_background_messages()
             return [(address, name, age) for (address, name, age) in self._remote_agents
                     if accept_old or age == self.NEW]
 
@@ -72,9 +74,8 @@ class SimpleServer(SocketServer.BaseRequestHandler):
         data = ''.join(iter(self.read_socket, ''))
         port, name = data.decode().split(':', 1)
         address = ':'.join([self.client_address[0], port])
-        # FIXME: use new thread logging helper
-        print '*DEBUG:%d* Registered java remoteswinglibrary agent "%s" at %s' % \
-              (time.time()*1000, name, address)
+        logger.debug('Registered java remoteswinglibrary agent "%s" at %s' % \
+              (name, address))
         REMOTE_AGENTS_LIST.append(address, name)
         self.request.sendall(data)
 
@@ -226,7 +227,8 @@ class RemoteSwingLibrary(object):
         address = ('0.0.0.0', int(port))
         server = SocketServer.TCPServer(address, SimpleServer)
         server.allow_reuse_address = True
-        t = threading.Thread(target=server.serve_forever)
+        t = threading.Thread(name="RemoteSwingLibrary registration server thread",
+                             target=server.serve_forever)
         t.setDaemon(True)
         t.start()
         return server.server_address[1]
