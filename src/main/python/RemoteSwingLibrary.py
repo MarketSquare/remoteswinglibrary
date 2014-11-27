@@ -284,8 +284,8 @@ class RemoteSwingLibrary(object):
         """
         stdout = "remote_stdout_" + str(uuid.uuid4()) + '.txt'
         stderr = "remote_stderr_" + str(uuid.uuid4()) + '.txt'
-        logger.info('<a href="%s">stdout from process</a>' % stdout, html=True)
-        logger.info('<a href="%s">stderr from process</a>' % stderr, html=True)
+        logger.info('<a href="%s">Link to stdout</a>' % stdout, html=True)
+        logger.info('<a href="%s">Link to stderr</a>' % stderr, html=True)
         REMOTE_AGENTS_LIST.set_received_to_old()
         with self._agent_java_tool_options():
             self.PROCESS.start_process(command, alias=alias, shell=True,
