@@ -4,3 +4,6 @@ log.html
 output.xml
 report.html
 .pyc
+.DS_Store
+*.iml
+*py.class
