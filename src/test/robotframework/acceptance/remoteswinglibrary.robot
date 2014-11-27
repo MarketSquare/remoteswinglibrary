@@ -1,5 +1,5 @@
 *** Settings ***
-Library    RemoteSwingLibrary
+Library    RemoteSwingLibrary          debug=True
 Library    OperatingSystem
 Library    Process
 Suite setup    Set Environment Variable      CLASSPATH     target/test-classes
@@ -43,7 +43,7 @@ Connecting to a specific application
 Connecting to an application and using java agent option
     [Timeout]    20 seconds
     ${agent}=    Set Variable   -javaagent:"${REMOTESWINGLIBRARYPATH}"\=127.0.0.1:${REMOTESWINGLIBRARYPORT}
-	log    ${agent}
+    log    ${agent}
     ${handle}=    Start Process  java ${agent} org.robotframework.remoteswinglibrary.MySwingApp   shell=True
     Application Started     app
     Exit and check process    ${handle}   app

@@ -1,5 +1,5 @@
  *** Settings ***
-Library    RemoteSwingLibrary
+Library    RemoteSwingLibrary        debug=True
 Library    FileServer
 Suite Setup     FileServer.Start
 Suite Teardown    FileServer.Stop
