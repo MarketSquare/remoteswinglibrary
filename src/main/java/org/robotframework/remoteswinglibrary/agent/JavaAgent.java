@@ -17,6 +17,7 @@
 
 package org.robotframework.remoteswinglibrary.agent;
 
+import javax.swing.*;
 import java.lang.instrument.Instrumentation;
 
 
@@ -28,7 +29,7 @@ public class JavaAgent {
         String[] args = agentArgument.split(":");
         String host = args[0];
         int port = getRemoteSwingLibraryPort(args[1]);
-        boolean debug = args.length == 3 && args[2].equals("DEBUG");
+        boolean debug = args.length > 2 && args[2].equals("DEBUG");
         try {
             Thread findAppContext = new Thread(new FindAppContextWithWindow(host, port, debug));
             findAppContext.setDaemon(true);
@@ -49,7 +50,11 @@ public class JavaAgent {
     }
 
     public static void main(String[] args) throws InterruptedException {
-        System.out.println("This is RemoteSwingLibrary\n"
+        JFrame.setDefaultLookAndFeelDecorated(true);
+        JFrame frame = new JFrame();
+        frame.setTitle("My First Swing Application");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        JTextArea text = new JTextArea("This is RemoteSwingLibrary\n"
                 + "Usage:\n"
                 + "Add this jar file to PYTHONPATH\n"
                 + "Import RemoteSwingLibrary in your test cases\n"
@@ -57,7 +62,13 @@ public class JavaAgent {
                 + "This program will now sleep for 5 seconds\n"
                 + "This main is for documentation generation "
                 + "and connection testing purposes");
+        text.setLineWrap(true);
+        frame.add(text);
+        frame.pack();
+        frame.setSize(600,200);
+        frame.setVisible(true);
         Thread.sleep(5000);
+        frame.dispose();
     }
 
 
