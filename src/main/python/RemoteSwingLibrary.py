@@ -20,6 +20,7 @@ import time
 import traceback
 import SocketServer
 from xmlrpclib import ProtocolError
+import uuid
 
 from robot.errors import HandlerExecutionFailed, TimeoutError
 from robot.variables import GLOBAL_VARIABLES
@@ -29,8 +30,9 @@ from robot.running import EXECUTION_CONTEXTS
 from robot.running.namespace import IMPORTER
 from robot.running.testlibraries import TestLibrary
 from robot.libraries.BuiltIn import BuiltIn, run_keyword_variant
-from robot.api import logger
 from robot.utils import timestr_to_secs, get_link_path
+from robotbackgroundlogger import BackgroundLogger
+logger = BackgroundLogger()
 
 
 class AgentList(object):
@@ -53,6 +55,7 @@ class AgentList(object):
 
     def get(self, accept_old):
         with self._lock:
+            logger.log_background_messages()
             return [(address, name, age) for (address, name, age) in self._remote_agents
                     if accept_old or age == self.NEW]
 
@@ -71,9 +74,8 @@ class SimpleServer(SocketServer.BaseRequestHandler):
         data = ''.join(iter(self.read_socket, ''))
         port, name = data.decode().split(':', 1)
         address = ':'.join([self.client_address[0], port])
-        # FIXME: use new thread logging helper
-        print '*DEBUG:%d* Registered java remoteswinglibrary agent "%s" at %s' % \
-              (time.time()*1000, name, address)
+        logger.debug('Registered java remoteswinglibrary agent "%s" at %s' % \
+              (name, address))
         REMOTE_AGENTS_LIST.append(address, name)
         self.request.sendall(data)
 
@@ -199,6 +201,7 @@ class RemoteSwingLibrary(object):
     TIMEOUT = 60
     PORT = None
     AGENT_PATH = os.path.abspath(os.path.dirname(__file__))
+    _output_dir = ''
 
     def __init__(self, port=None, debug=False):
         """
@@ -225,7 +228,8 @@ class RemoteSwingLibrary(object):
         address = ('0.0.0.0', int(port))
         server = SocketServer.TCPServer(address, SimpleServer)
         server.allow_reuse_address = True
-        t = threading.Thread(target=server.serve_forever)
+        t = threading.Thread(name="RemoteSwingLibrary registration server thread",
+                             target=server.serve_forever)
         t.setDaemon(True)
         t.start()
         return server.server_address[1]
@@ -238,7 +242,9 @@ class RemoteSwingLibrary(object):
         if robot_running:
             BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPATH}', self._escape_path(RemoteSwingLibrary.AGENT_PATH))
             BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPORT}', RemoteSwingLibrary.PORT)
+            self._output_dir = BuiltIn().get_variable_value('${OUTPUTDIR}')
         logger.info(agent_command)
+
 
     def _escape_path(self, text):
         return text.replace("\\","\\\\")
@@ -277,9 +283,15 @@ class RemoteSwingLibrary(object):
         To see the name of the connecting java agents run tests with --loglevel DEBUG.
 
         """
+        stdout = "remote_stdout_" + str(uuid.uuid4()) + '.txt'
+        stderr = "remote_stderr_" + str(uuid.uuid4()) + '.txt'
+        logger.info('<a href="%s">Link to stdout</a>' % stdout, html=True)
+        logger.info('<a href="%s">Link to stderr</a>' % stderr, html=True)
         REMOTE_AGENTS_LIST.set_received_to_old()
         with self._agent_java_tool_options():
-            self.PROCESS.start_process(command, alias=alias, shell=True)
+            self.PROCESS.start_process(command, alias=alias, shell=True,
+                                       stdout=self._output(stdout),
+                                       stderr=self._output(stderr))
         try:
             self._application_started(alias, timeout=timeout, name_contains=name_contains, accept_old=False)
         except TimeoutError:
@@ -294,6 +306,9 @@ class RemoteSwingLibrary(object):
             else:
                 logger.info("Process is running, but application startup failed")
             raise
+
+    def _output(self, filename):
+        return os.path.join(self._output_dir, filename)
 
     def application_started(self, alias, timeout=60, name_contains=None):
         """Detects new RemoteSwingLibrary Java-agents in applications that are started without
@@ -390,7 +405,7 @@ class RemoteSwingLibrary(object):
                 return
             raise
         except HandlerExecutionFailed, e: # disconnection from xmlrpc wrapped in robot keyword
-            if 'Connection to remote server broken:' in e.message:
+            if  any(elem in e.message for elem in ('Connection to remote server broken:', 'ProtocolError')):
                 logger.info('Connection died as expected')
                 return
             raise
