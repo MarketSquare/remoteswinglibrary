@@ -405,7 +405,7 @@ class RemoteSwingLibrary(object):
                 return
             raise
         except HandlerExecutionFailed, e: # disconnection from xmlrpc wrapped in robot keyword
-            if  any(elem in e.message for elem in ('Connection to remote server broken:', 'ProtocolError')):
+            if any(elem in e.message for elem in ('Connection to remote server broken:', 'ProtocolError')):
                 logger.info('Connection died as expected')
                 return
             raise

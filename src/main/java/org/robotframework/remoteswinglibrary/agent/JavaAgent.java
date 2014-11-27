@@ -19,39 +19,32 @@ package org.robotframework.remoteswinglibrary.agent;
 
 import java.awt.*;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.lang.instrument.Instrumentation;
 import java.lang.ref.WeakReference;
 import java.net.Socket;
-import java.util.Arrays;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.Vector;
 
-import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.varia.NullAppender;
 import org.robotframework.remoteswinglibrary.remote.DaemonRemoteServer;
 import org.robotframework.remoteserver.RemoteServer;
 import org.robotframework.swing.SwingLibrary;
 
 import sun.awt.AppContext;
-import sun.awt.SunToolkit;
+
 
 public class JavaAgent {
 
     private static final int DEFAULT_REMOTESWINGLIBRARY_PORT = 8181;
-    private static PrintStream out = System.out;
+
     public static void premain(String agentArgument, Instrumentation instrumentation) {
+        String[] args = agentArgument.split(":");
+        String host = args[0];
+        int port = getRemoteSwingLibraryPort(args[1]);
+        boolean debug = args.length == 3 ? args[2].equals("DEBUG") : false;
         try {
-            Thread findAppContext = new Thread(new FindAppContextWithWindow(agentArgument.split(":")));
+            Thread findAppContext = new Thread(new FindAppContextWithWindow(host, port, debug));
             findAppContext.setDaemon(true);
             findAppContext.start();
         } catch (Exception e) {
@@ -61,22 +54,35 @@ public class JavaAgent {
         }
     }
 
+    private static int getRemoteSwingLibraryPort(String port) {
+        try {
+            return Integer.parseInt(port);
+        } catch (NumberFormatException e) {
+            return DEFAULT_REMOTESWINGLIBRARY_PORT;
+        }
+    }
 
     private static class FindAppContextWithWindow implements Runnable {
 
-        String [] args;
+        String host;
+        int port;
+        boolean debug;
 
-        public FindAppContextWithWindow(String[] args) {
-            this.args = args;
+        public FindAppContextWithWindow(String host, int port, boolean debug) {
+            this.host = host;
+            this.port = port;
+            this.debug = debug;
         }
 
         public void run()  {
             try {
-                sun.awt.SunToolkit.invokeLaterOnAppContext(getAppContextWithWindow(), new ServerThread(args));
+                sun.awt.SunToolkit.invokeLaterOnAppContext(getAppContextWithWindow(), new ServerThread(host, port, debug));
             } catch (Exception e) {
-                e.printStackTrace();
-                System.err.println(e);
-                System.err.println("Error starting remote server");
+                if (debug) {
+                    e.printStackTrace();
+                    System.err.println(e);
+                    System.err.println("Error starting remote server");
+                }
             }
         }
 
@@ -88,7 +94,7 @@ public class JavaAgent {
                         return ctx;
                     }
                 }
-                Thread.sleep(2000);
+                Thread.sleep(1000);
             }
 
         }
@@ -100,11 +106,11 @@ public class JavaAgent {
                 return false;
             for (WeakReference<Window> ref:windowList) {
                 Window window = ref.get();
-                logWindowDetails("Trying to connect to", window);
+                if (debug) logWindowDetails("Trying to connect to", window);
                 if (isFrame(window)
                     && window.isVisible()
                     && !isConsoleWindow(window)) {
-                    logWindowDetails("Connected to", window);
+                    if (debug) logWindowDetails("Connected to", window);
                     return true;
                 }
             }
@@ -129,10 +135,14 @@ public class JavaAgent {
 
     private static class ServerThread implements Runnable {
 
-        String [] args;
+        String host;
+        int port;
+        boolean debug;
 
-        public ServerThread(String[] args) {
-            this.args = args;
+        public ServerThread(String host, int port, boolean debug) {
+            this.host = host;
+            this.port = port;
+            this.debug = debug;
         }
 
         public void run()  {
@@ -144,13 +154,13 @@ public class JavaAgent {
                 server.setAllowStop(true);
                 server.start();
                 Integer actualPort = server.getLocalPort();
-                notifyPort(actualPort, args[0], getRemoteSwingLibraryPort(args[1]));
+                notifyPort(actualPort, host, port);
             } catch (Exception e) {
-                e.printStackTrace();
-                System.err.println(e);
-                System.err.println("Error starting remote server");
-            } finally {
-                System.setOut(out);
+                if (debug) {
+                    e.printStackTrace();
+                    System.err.println(e);
+                    System.err.println("Error starting remote server");
+                }
             }
         }
 
@@ -171,14 +181,6 @@ public class JavaAgent {
                     return entry.getValue();
             }
             return "Unknown";
-        }
-
-        private static int getRemoteSwingLibraryPort(String port) {
-            try {
-                return Integer.parseInt(port);
-            } catch (NumberFormatException e) {
-                return DEFAULT_REMOTESWINGLIBRARY_PORT;
-            }
         }
     }
 
