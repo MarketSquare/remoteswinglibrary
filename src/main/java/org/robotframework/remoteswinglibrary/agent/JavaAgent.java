@@ -29,9 +29,19 @@ public class JavaAgent {
         String[] args = agentArgument.split(":");
         String host = args[0];
         int port = getRemoteSwingLibraryPort(args[1]);
-        boolean debug = args.length > 2 && args[2].equals("DEBUG");
+        int apport = 0;
+        boolean debug = false;
+
+        if (args.length >=3 && !"DEBUG".equals(args[2])){
+            apport = Integer.parseInt(args[2]);
+        }
+
+        if (args.length >=3 && "DEBUG".equals(args.length-1)){
+            debug = true;
+        }
+
         try {
-            Thread findAppContext = new Thread(new FindAppContextWithWindow(host, port, debug));
+            Thread findAppContext = new Thread(new FindAppContextWithWindow(host, port, apport, debug));
             findAppContext.setDaemon(true);
             findAppContext.start();
         } catch (Exception e) {
