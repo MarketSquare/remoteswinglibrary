@@ -32,8 +32,12 @@ public class JavaAgent {
         int port = getRemoteSwingLibraryPort(args[1]);
         boolean debug = Arrays.asList(args).contains("DEBUG");
         boolean closeSecurityDialogs = Arrays.asList(args).contains("CLOSE_SECURITY_DIALOGS");
+        int apport = 0;
+        for (String arg: args)
+            if (arg.startsWith("APPORT="))
+                apport = Integer.parseInt(arg.split("=")[1]);
         try {
-            Thread findAppContext = new Thread(new FindAppContextWithWindow(host, port, debug, closeSecurityDialogs));
+            Thread findAppContext = new Thread(new FindAppContextWithWindow(host, port, apport, debug, closeSecurityDialogs));
             findAppContext.setDaemon(true);
             findAppContext.start();
             // Sleep to ensure that findAppContext daemon thread is kept alive until the

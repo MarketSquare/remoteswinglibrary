@@ -25,12 +25,13 @@ import java.util.Map;
 
 
 public class ServerThread implements Runnable {
-
+    int apport;
     boolean debug;
     RobotConnection robotConnection;
 
-    public ServerThread(RobotConnection robotConnection, boolean debug) {
+    public ServerThread(RobotConnection robotConnection,  int apport, boolean debug) {
         this.robotConnection = robotConnection;
+        this.apport = apport;
         this.debug = debug;
     }
 
@@ -39,7 +40,7 @@ public class ServerThread implements Runnable {
             RemoteServer server = new DaemonRemoteServer();
             server.putLibrary("/RPC2", new SwingLibrary());
             server.putLibrary("/services", new ServicesLibrary());
-            server.setPort(0);
+            server.setPort(apport);
             server.setAllowStop(true);
             server.start();
             Integer actualPort = server.getLocalPort();
