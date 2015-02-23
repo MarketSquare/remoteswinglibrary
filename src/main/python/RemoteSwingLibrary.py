@@ -201,11 +201,12 @@ class RemoteSwingLibrary(object):
     ROBOT_NAMESPACE_BRIDGE = RobotLibraryImporter()
     TIMEOUT = 60
     PORT = None
+    APHOST = None
     APPORT = None
     AGENT_PATH = os.path.abspath(os.path.dirname(__file__))
     _output_dir = ''
 
-    def __init__(self, port=None, apport=None, debug=False):
+    def __init__(self, port=None, aphost='127.0.0.1', apport=None, debug=False):
         """
         *port*: optional port for the server receiving connections from remote agents
 
@@ -216,6 +217,7 @@ class RemoteSwingLibrary(object):
         """
         if RemoteSwingLibrary.PORT is None:
             RemoteSwingLibrary.PORT = self._start_port_server(0 if port == 'TEST' else port or 0)
+        RemoteSwingLibrary.APHOST = aphost
         RemoteSwingLibrary.APPORT = apport
         self._create_env(bool(debug), port != 'TEST')
         if port == 'TEST':
@@ -340,7 +342,7 @@ class RemoteSwingLibrary(object):
     def _application_started(self, alias, timeout=60, name_contains=None, accept_old=True):
         self.TIMEOUT = timestr_to_secs(timeout)
         if (RemoteSwingLibrary.APPORT):
-            url = '127.0.0.1:'+RemoteSwingLibrary.APPORT
+            url = '%s:%s'%(RemoteSwingLibrary.APHOST, RemoteSwingLibrary.APPORT)
         else:
             url = self._get_agent_address(name_contains, accept_old)
         logger.info('connecting to started application at %s' % url)
