@@ -34,6 +34,9 @@ public class JavaAgent {
             Thread findAppContext = new Thread(new FindAppContextWithWindow(host, port, debug));
             findAppContext.setDaemon(true);
             findAppContext.start();
+            // Sleep to ensure that findAppContext daemon thread is kept alive until the
+            // application is started.
+            Thread.sleep(1000);
         } catch (Exception e) {
             e.printStackTrace();
             System.err.println(e);
