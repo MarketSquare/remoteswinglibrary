@@ -77,7 +77,6 @@ class SimpleServer(SocketServer.BaseRequestHandler):
         logger.debug('Registered java remoteswinglibrary agent "%s" at %s' % \
               (name, address))
         REMOTE_AGENTS_LIST.append(address, name)
-        self.request.sendall(data)
 
     def read_socket(self):
         return self.request.recv(1)
