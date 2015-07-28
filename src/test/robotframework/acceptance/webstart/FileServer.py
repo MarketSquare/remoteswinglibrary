@@ -22,12 +22,12 @@ class FileServer(ThreadingMixIn, TCPServer):
         self.RESOURCE_LOCATION = path.abspath(path.dirname(__file__))
         print "Server serving from DocumentRoot:" + self.RESOURCE_LOCATION
         chdir(self.RESOURCE_LOCATION)
-        server_thread = threading.Thread(target=self.serve_forever)
+        server_thread = threading.Thread(name='test_file_server', target=self.serve_forever)
         server_thread.daemon = True
         server_thread.start()
 
     def stop(self):
-        self.server_close()
+        self.shutdown()
         print "Server stopped"
 
 if __name__ == '__main__':
