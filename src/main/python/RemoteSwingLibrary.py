@@ -215,7 +215,7 @@ class RemoteSwingLibrary(object):
             RemoteSwingLibrary.PORT = self._start_port_server(0 if port == 'TEST' else port or 0)
         self._create_env(bool(debug), port != 'TEST')
         if port == 'TEST':
-            self.start_application('docgenerator', 'java -jar %s' % RemoteSwingLibrary.AGENT_PATH, timeout=2.0)
+            self.start_application('docgenerator', 'java -jar %s' % RemoteSwingLibrary.AGENT_PATH, timeout=4.0)
 
     @property
     def current(self):
