@@ -27,7 +27,10 @@ class FileServer(ThreadingMixIn, TCPServer):
         server_thread.start()
 
     def stop(self):
-        self.shutdown()
+        if hasattr(self, 'shutdown'):
+            self.shutdown()
+        else:
+            self.server_close()
         print "Server stopped"
 
 if __name__ == '__main__':
