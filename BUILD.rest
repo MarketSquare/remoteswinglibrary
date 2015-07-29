@@ -8,9 +8,7 @@ Code is organized according to the Maven convention in `src/main/java` and
 Building
 ========
 
-RemoteSwingLibrary uses Apache Maven_ as a build tool.
-
-__ http://maven.apache.org/
+RemoteSwingLibrary uses Apache Maven as a build tool.
 
 - `mvn clean package` packages RemoteSwingLibrary with dependencies.
 
@@ -19,6 +17,12 @@ __ http://maven.apache.org/
 Releasing
 =========
 
-- 
+- update version x.x.x to pom.xml
+- run tests ``mvn clean verify``
+- generate the documentation: ``PYTHONPATH=target/remoteswinglibrary-x.x.x.jar python -m robot.libdoc RemoteSwingLibrary::TEST RemoteSwingLibrary-x.x.x.html``
+- create tag ``git tag -a x.x.x``
+- push ``git push``and ``git push --tags``
+- create a new release and upload the jar file and html documentation to https://github.com/robotframework/remoteswinglibrary/releases
+
 
 
