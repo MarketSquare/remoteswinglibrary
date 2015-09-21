@@ -234,7 +234,8 @@ class RemoteSwingLibrary(object):
         return server.server_address[1]
 
     def _create_env(self, debug, robot_running=True):
-        agent_command = '-javaagent:"%s"=127.0.0.1:%s' % (RemoteSwingLibrary.AGENT_PATH, RemoteSwingLibrary.PORT)
+        agent_command = '-Djava.security.manager=org.robotframework.remoteswinglibrary.agent.PermissiveSecurityManager' \
+                        ' -javaagent:"%s"=127.0.0.1:%s' % (RemoteSwingLibrary.AGENT_PATH, RemoteSwingLibrary.PORT)
         if debug:
             agent_command += ':DEBUG'
         self._agent_command = agent_command
