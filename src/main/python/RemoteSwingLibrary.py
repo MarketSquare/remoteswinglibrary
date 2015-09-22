@@ -15,6 +15,7 @@ from __future__ import with_statement
 from contextlib import contextmanager
 import inspect
 import os
+import tempfile
 import threading
 import time
 import traceback
@@ -250,27 +251,46 @@ class RemoteSwingLibrary(object):
 
     @contextmanager
     def _agent_java_tool_options(self):
-        old_options = os.environ.get('JAVA_TOOL_OPTIONS', '')
-        logger.debug("Picked old JAVA_TOOL_OPTIONS='%s'" % old_options)
+        old_tool_options = os.environ.get('JAVA_TOOL_OPTIONS', '')
+        old_options = os.environ.get('_JAVA_OPTIONS', '')
+        logger.debug("Picked old JAVA_TOOL_OPTIONS='%s'" % old_tool_options)
+        logger.debug("Picked old _JAVA_OPTIONS='%s'" % old_options)
         self.set_java_tool_options()
         try:
             yield
         finally:
-            os.environ['JAVA_TOOL_OPTIONS'] = old_options
-            logger.debug("Returned old JAVA_TOOL_OPTIONS='%s'" % old_options)
+            os.environ['JAVA_TOOL_OPTIONS'] = old_tool_options
+            os.environ['_JAVA_OPTIONS'] = old_options
+            logger.debug("Returned old JAVA_TOOL_OPTIONS='%s'" % old_tool_options)
+            logger.debug("Returned old _JAVA_OPTIONS='%s'" % old_options)
 
     def set_java_tool_options(self):
-        """Sets the JAVA_TOOL_OPTIONS to include RemoteSwingLibrary Agent.
+        """Sets the JAVA_TOOL_OPTIONS to include RemoteSwingLibrary Agent and
+        the _JAVA_OPTIONS to set a temporary policy granting all permissions.
 
         RemoteSwingLibrary Agent is normally enabled by `Start Application` by
         setting the JAVA_TOOL_OPTIONS environment variable only during
         that keyword call. So java processes started by other commands wont
         normally use the RemoteSwingLibrary Agent. This keyword sets that same
         environment variable to be used always. So all java processes started
-        after this will use the Agent.
+        after this will use the Agent. This methods also creates temporary
+        Java policy file which grants all permissions. This file is set as
+        policy for each java command call.
         """
         os.environ['JAVA_TOOL_OPTIONS'] = self._agent_command
         logger.debug("Set JAVA_TOOL_OPTIONS='%s'" % self._agent_command)
+
+        t = tempfile.NamedTemporaryFile(prefix='grant_all_', suffix='.policy', delete=False)
+        t.write("""
+            grant {
+                permission java.security.AllPermission;
+            };""")
+        t.close()
+
+        java_policy = '-Djava.security.policy="%s"' % t.name
+        os.environ['_JAVA_OPTIONS'] = java_policy
+        logger.debug("Set _JAVA_OPTIONS='%s'" % java_policy)
+
 
     def start_application(self, alias, command, timeout=60, name_contains=None):
         """Starts the process in the `command` parameter  on the host operating system.

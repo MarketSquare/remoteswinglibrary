@@ -11,6 +11,20 @@ class CustomHandler(SimpleHTTPRequestHandler):
     def log_message(self, format, *args):
         pass
 
+    # These methods get rid of errors messages caused by javaws closing the socket immediately
+    def handle_one_request(self):
+        try:
+            SimpleHTTPRequestHandler.handle_one_request(self)
+        except:
+            pass
+
+    def finish(self):
+        try:
+            SimpleHTTPRequestHandler.finish(self)
+        except:
+            pass
+
+
 class FileServer(ThreadingMixIn, TCPServer):
     allow_reuse_address = True
 
