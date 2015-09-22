@@ -193,17 +193,20 @@ class RemoteSwingLibrary(object):
 
     ROBOT_LIBRARY_SCOPE = 'GLOBAL'
     KEYWORDS = ['system_exit', 'start_application', 'application_started', 'switch_to_application',
-                'ensure_application_should_close', 'log_java_system_properties', 'set_java_tool_options']
+                'ensure_application_should_close', 'log_java_system_properties', 'set_java_tool_options',
+                'connect_to_application']
     REMOTES = {}
     CURRENT = None
     PROCESS = Process()
     ROBOT_NAMESPACE_BRIDGE = RobotLibraryImporter()
     TIMEOUT = 60
     PORT = None
+    APHOST = None
+    APPORT = None
     AGENT_PATH = os.path.abspath(os.path.dirname(__file__))
     _output_dir = ''
 
-    def __init__(self, port=None, debug=False):
+    def __init__(self, port=None, aphost='127.0.0.1', apport=None, debug=False):
         """
         *port*: optional port for the server receiving connections from remote agents
 
@@ -214,6 +217,8 @@ class RemoteSwingLibrary(object):
         """
         if RemoteSwingLibrary.PORT is None:
             RemoteSwingLibrary.PORT = self._start_port_server(0 if port == 'TEST' else port or 0)
+        RemoteSwingLibrary.APHOST = aphost
+        RemoteSwingLibrary.APPORT = apport
         self._create_env(bool(debug), port != 'TEST')
         if port == 'TEST':
             self.start_application('docgenerator', 'java -jar %s' % RemoteSwingLibrary.AGENT_PATH, timeout=4.0)
@@ -236,6 +241,8 @@ class RemoteSwingLibrary(object):
 
     def _create_env(self, debug, robot_running=True):
         agent_command = '-javaagent:"%s"=127.0.0.1:%s' % (RemoteSwingLibrary.AGENT_PATH, RemoteSwingLibrary.PORT)
+        if RemoteSwingLibrary.APPORT:
+            agent_command += ':%s'%(RemoteSwingLibrary.APPORT)
         if debug:
             agent_command += ':DEBUG'
         self._agent_command = agent_command
@@ -326,6 +333,21 @@ class RemoteSwingLibrary(object):
                 logger.info("Process is running, but application startup failed")
             raise
 
+    def connect_to_application(self, alias, timeout=60, name_contains=None):
+        try:
+            self._application_started(alias, timeout=timeout, name_contains=name_contains, accept_old=True)
+        except TimeoutError:
+            raise
+        except Exception:
+            logger.info("Failed to connect to application: %s" % traceback.format_exc())
+            result = self.PROCESS.wait_for_process(timeout=0.01)
+            if result:
+                logger.info('STDOUT: %s' % result.stdout)
+                logger.info('STDERR: %s' % result.stderr)
+            else:
+                logger.info("Process is running, but application startup failed")
+            raise
+
     def _output(self, filename):
         return os.path.join(self._output_dir, filename)
 
@@ -338,7 +360,10 @@ class RemoteSwingLibrary(object):
 
     def _application_started(self, alias, timeout=60, name_contains=None, accept_old=True):
         self.TIMEOUT = timestr_to_secs(timeout)
-        url = self._get_agent_address(name_contains, accept_old)
+        if (RemoteSwingLibrary.APPORT):
+            url = '%s:%s'%(RemoteSwingLibrary.APHOST, RemoteSwingLibrary.APPORT)
+        else:
+            url = self._get_agent_address(name_contains, accept_old)
         logger.info('connecting to started application at %s' % url)
         self._initialize_remote_libraries(alias, url)
         RemoteSwingLibrary.CURRENT = alias

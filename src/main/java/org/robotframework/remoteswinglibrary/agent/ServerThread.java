@@ -30,11 +30,13 @@ public class ServerThread implements Runnable {
 
     String host;
     int port;
+    int apport;
     boolean debug;
 
-    public ServerThread(String host, int port, boolean debug) {
+    public ServerThread(String host, int port, int apport, boolean debug) {
         this.host = host;
         this.port = port;
+        this.apport = apport;
         this.debug = debug;
     }
 
@@ -43,7 +45,7 @@ public class ServerThread implements Runnable {
             RemoteServer server = new DaemonRemoteServer();
             server.putLibrary("/RPC2", new SwingLibrary());
             server.putLibrary("/services", new ServicesLibrary());
-            server.setPort(0);
+            server.setPort(apport);
             server.setAllowStop(true);
             server.start();
             Integer actualPort = server.getLocalPort();

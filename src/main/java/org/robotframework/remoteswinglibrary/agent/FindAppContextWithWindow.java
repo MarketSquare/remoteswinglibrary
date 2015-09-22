@@ -28,17 +28,19 @@ class FindAppContextWithWindow implements Runnable {
 
     String host;
     int port;
+    int apport;
     boolean debug;
 
-    public FindAppContextWithWindow(String host, int port, boolean debug) {
+    public FindAppContextWithWindow(String host, int port, int apport, boolean debug) {
         this.host = host;
         this.port = port;
+        this.apport = apport;
         this.debug = debug;
     }
 
     public void run()  {
         try {
-            sun.awt.SunToolkit.invokeLaterOnAppContext(getAppContextWithWindow(), new ServerThread(host, port, debug));
+            sun.awt.SunToolkit.invokeLaterOnAppContext(getAppContextWithWindow(), new ServerThread(host, port, apport, debug));
         } catch (Exception e) {
             if (debug) {
                 e.printStackTrace();
@@ -66,8 +68,6 @@ class FindAppContextWithWindow implements Runnable {
               (Vector<WeakReference<Window>>)ctx.get(Window.class);
         if (windowList == null)
             return false;
-        // make a copy of the vector to prevent concurrency errors.
-        windowList = new Vector<WeakReference<Window>>(windowList);
         for (WeakReference<Window> ref:windowList) {
             Window window = ref.get();
             if (debug) logWindowDetails("Trying to connect to", window);
