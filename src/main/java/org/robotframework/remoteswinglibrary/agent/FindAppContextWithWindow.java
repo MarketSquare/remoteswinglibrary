@@ -16,6 +16,7 @@
 
 package org.robotframework.remoteswinglibrary.agent;
 
+import org.robotframework.swing.SwingLibrary;
 import sun.awt.AppContext;
 
 import java.awt.*;
@@ -68,9 +69,21 @@ class FindAppContextWithWindow implements Runnable {
             return false;
         // make a copy of the vector to prevent concurrency errors.
         windowList = new Vector<WeakReference<Window>>(windowList);
+        boolean alreadyAccepting = false;
         for (WeakReference<Window> ref:windowList) {
             Window window = ref.get();
             if (debug) logWindowDetails("Trying to connect to", window);
+            if (window instanceof Dialog && !alreadyAccepting) {
+                System.err.println("DIALOG TITLE IS:: " + ((Dialog) window).getTitle());
+                SecurityContextAccepter accepter = new SecurityContextAccepter();
+                sun.awt.SunToolkit.invokeLaterOnAppContext(ctx, accepter);
+                while (!accepter.done) {
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                    }
+                }
+            }
             if (isFrame(window)
                 && window.isVisible()
                 && !isConsoleWindow(window)) {
@@ -94,5 +107,33 @@ class FindAppContextWithWindow implements Runnable {
 
     private boolean isConsoleWindow(Window window) {
         return window.getClass().getName().contains("ConsoleWindow");
+    }
+
+    private class SecurityContextAccepter implements Runnable {
+
+        public boolean done = false;
+
+        public void run() {
+            try {
+                SwingLibrary lib = new SwingLibrary();
+                lib.runKeyword("select_dialog", new Object[]{"0"});
+                lib.runKeyword("check_check_box", new Object[]{"0"});
+                //boolean enabled = false;
+                //while (!enabled) {
+                //    enabled = isEnabledButton(lib);
+                //}
+                lib.runKeyword("push_button", new Object[]{"Run"});
+            } finally {
+                this.done = true;
+            }
+        }
+        private boolean isEnabledButton(SwingLibrary lib) {
+            try {
+                lib.runKeyword("button_should_be_enabled", new Object[]{"Run"});
+                return true;
+            } catch (RuntimeException e) {
+                return false;
+            }
+        }
     }
 }
