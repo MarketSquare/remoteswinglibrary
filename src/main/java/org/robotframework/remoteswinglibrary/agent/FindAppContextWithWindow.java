@@ -32,13 +32,15 @@ class FindAppContextWithWindow implements Runnable {
     String host;
     int port;
     boolean debug;
+    boolean closeSecurityDialogs;
 
     HashMap<Dialog, SecurityDialogAccepter> dialogs = new HashMap<Dialog, SecurityDialogAccepter>();
 
-    public FindAppContextWithWindow(String host, int port, boolean debug) {
+    public FindAppContextWithWindow(String host, int port, boolean debug, boolean closeSecurityDialogs) {
         this.host = host;
         this.port = port;
         this.debug = debug;
+        this.closeSecurityDialogs = closeSecurityDialogs;
     }
 
     public void run()  {
@@ -84,7 +86,7 @@ class FindAppContextWithWindow implements Runnable {
         for (WeakReference<Window> ref:windowList) {
             Window window = ref.get();
             if (debug) logWindowDetails("Trying to connect to", window);
-            if (window instanceof Dialog) {
+            if (closeSecurityDialogs && window instanceof Dialog) {
                 Dialog dialog = (Dialog) window;
                 if (!dialogs.containsKey(dialog)) {
                     SecurityDialogAccepter accepter = new SecurityDialogAccepter(dialog, ctx);
@@ -152,6 +154,7 @@ class FindAppContextWithWindow implements Runnable {
         private void SecurityWarning() {
             SwingLibrary lib = new SwingLibrary();
             lib.runKeyword("select_dialog", new Object[]{"Security Warning"});
+            //lib.runKeyword("push_button", new Object[]{"DoES not exists"});
             String buttonText = (String) lib.runKeyword("get_button_text", new Object[]{"1"});
             System.err.println("button name is: " + buttonText);
             if (buttonText.equals("Run")) {

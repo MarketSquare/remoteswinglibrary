@@ -19,6 +19,7 @@ package org.robotframework.remoteswinglibrary.agent;
 
 import javax.swing.*;
 import java.lang.instrument.Instrumentation;
+import java.util.Arrays;
 
 
 public class JavaAgent {
@@ -29,9 +30,10 @@ public class JavaAgent {
         String[] args = agentArgument.split(":");
         String host = args[0];
         int port = getRemoteSwingLibraryPort(args[1]);
-        boolean debug = args.length > 2 && args[2].equals("DEBUG");
+        boolean debug = Arrays.asList(args).contains("DEBUG");
+        boolean closeSecurityDialogs = Arrays.asList(args).contains("CLOSE_SECURITY_DIALOGS");
         try {
-            Thread findAppContext = new Thread(new FindAppContextWithWindow(host, port, debug));
+            Thread findAppContext = new Thread(new FindAppContextWithWindow(host, port, debug, closeSecurityDialogs));
             findAppContext.setDaemon(true);
             findAppContext.start();
             // Sleep to ensure that findAppContext daemon thread is kept alive until the
