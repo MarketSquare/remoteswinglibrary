@@ -69,18 +69,15 @@ class AgentList(object):
 
 REMOTE_AGENTS_LIST = AgentList()
 
-class SimpleServer(SocketServer.BaseRequestHandler):
+class SimpleServer(SocketServer.StreamRequestHandler):
 
     def handle(self):
-        data = ''.join(iter(self.read_socket, ''))
+        data = self.rfile.readline().strip()
         port, name = data.decode().split(':', 1)
         address = ':'.join([self.client_address[0], port])
         logger.debug('Registered java remoteswinglibrary agent "%s" at %s' % \
               (name, address))
         REMOTE_AGENTS_LIST.append(address, name)
-
-    def read_socket(self):
-        return self.request.recv(1)
 
 
 class InvalidURLException(Exception):

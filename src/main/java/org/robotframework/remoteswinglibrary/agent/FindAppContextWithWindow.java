@@ -33,6 +33,7 @@ class FindAppContextWithWindow implements Runnable {
     int port;
     boolean debug;
     boolean closeSecurityDialogs;
+    RobotConnection robotConnection;
 
     HashMap<Dialog, SecurityDialogAccepter> dialogs = new HashMap<Dialog, SecurityDialogAccepter>();
 
@@ -45,7 +46,10 @@ class FindAppContextWithWindow implements Runnable {
 
     public void run()  {
         try {
-            sun.awt.SunToolkit.invokeLaterOnAppContext(getAppContextWithWindow(), new ServerThread(host, port, debug));
+            robotConnection = new RobotConnection(host, port);
+            robotConnection.connect();
+            AppContext appContext = getAppContextWithWindow();
+            sun.awt.SunToolkit.invokeLaterOnAppContext(appContext, new ServerThread(robotConnection, debug));
         } catch (Exception e) {
             if (debug) {
                 e.printStackTrace();
