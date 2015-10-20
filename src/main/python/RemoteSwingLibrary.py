@@ -72,12 +72,22 @@ REMOTE_AGENTS_LIST = AgentList()
 class SimpleServer(SocketServer.StreamRequestHandler):
 
     def handle(self):
-        data = self.rfile.readline().strip()
-        port, name = data.decode().split(':', 1)
-        address = ':'.join([self.client_address[0], port])
-        logger.debug('Registered java remoteswinglibrary agent "%s" at %s' % \
-              (name, address))
-        REMOTE_AGENTS_LIST.append(address, name)
+        data = self.rfile.readline()[:-1]
+        #logger.debug("DATA: " + data)
+        fields = data.decode().split(':')
+        if fields[0] == 'PORT':
+            port = fields[1]
+            name = ':'.join(fields[2:])
+            address = ':'.join([self.client_address[0], port])
+            logger.debug('Registered java remoteswinglibrary agent "%s" at %s' % \
+                         (name, address))
+            REMOTE_AGENTS_LIST.append(address, name)
+            self.request.sendall(data)
+        elif fields[0] == 'DIALOG':
+            title = ':'.join(fields[1:])
+            logger.info('Security Warning "%s" was accepted automatically' % title)
+        else:
+            logger.debug('Unknown message "%s"' % fields[0])
 
 
 class InvalidURLException(Exception):

@@ -21,9 +21,13 @@ public class RobotConnection {
         outToServer = new PrintWriter(echoSocket.getOutputStream(), true);
     }
 
-    public void close() throws IOException {
-        outToServer.close();
-        echoSocket.close();
+    public void close() {
+        try {
+            outToServer.close();
+            echoSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void send(String msg) {

@@ -54,7 +54,9 @@ public class ServerThread implements Runnable {
     }
 
     private void notifyPort(final Integer portToNotify) throws IOException {
-        robotConnection.send(portToNotify.toString() + ":" + getName());
+        robotConnection.connect();
+        //robotConnection.send("DIALOG:" + "aaa");
+        robotConnection.send("PORT:" + portToNotify.toString() + ":" + getName());
         robotConnection.close();
     }
 

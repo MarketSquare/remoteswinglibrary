@@ -47,7 +47,7 @@ class FindAppContextWithWindow implements Runnable {
     public void run()  {
         try {
             robotConnection = new RobotConnection(host, port);
-            robotConnection.connect();
+            //robotConnection.connect();
             AppContext appContext = getAppContextWithWindow();
             sun.awt.SunToolkit.invokeLaterOnAppContext(appContext, new ServerThread(robotConnection, debug));
         } catch (Exception e) {
@@ -93,7 +93,7 @@ class FindAppContextWithWindow implements Runnable {
             if (closeSecurityDialogs && window instanceof Dialog) {
                 Dialog dialog = (Dialog) window;
                 if (!dialogs.containsKey(dialog)) {
-                    SecurityDialogAccepter accepter = new SecurityDialogAccepter(dialog, ctx);
+                    SecurityDialogAccepter accepter = new SecurityDialogAccepter(dialog, ctx, robotConnection);
                     dialogs.put(dialog, accepter);
                 }
             }
@@ -129,22 +129,31 @@ class FindAppContextWithWindow implements Runnable {
         public boolean done = false;
         private AppContext ctx;
         public Dialog dialog;
+        private RobotConnection robotConnection;
 
-        public SecurityDialogAccepter(Dialog dialog, AppContext ctx) {
+        public SecurityDialogAccepter(Dialog dialog, AppContext ctx, RobotConnection robotConnection) {
             this.dialog = dialog;
             this.ctx = ctx;
+            this.robotConnection = robotConnection;
         }
 
         public void run() {
             try {
                 String title = dialog.getTitle();
-                System.err.println("DIALOG TITLE IS:: " + title);
-                if (title.equals("Security Warning"))
-                    SecurityWarning();
-                else if (title.equals("Security Information"))
-                    SecurityInformation();
-                else if (title.equals("Install Java Extension"))
-                    InstallJavaExtentension();
+                SwingLibrary lib = new SwingLibrary();
+                //System.err.println("DIALOG TITLE IS:: " + title);
+                if (title.equals("Security Warning")) {
+                    SecurityWarning(lib);
+                    LogSuccess(dialog);
+                }
+                else if (title.equals("Security Information")) {
+                    SecurityInformation(lib);
+                    LogSuccess(dialog);
+                }
+                else if (title.equals("Install Java Extension")) {
+                    InstallJavaExtentension(lib);
+                    LogSuccess(dialog);
+                }
                 else
                     System.err.println("Unrecognized dialog, skipping.");
                 done = true;
@@ -155,8 +164,13 @@ class FindAppContextWithWindow implements Runnable {
             running = false;
         }
 
-        private void SecurityWarning() {
-            SwingLibrary lib = new SwingLibrary();
+
+        private void LogSuccess(Dialog dialog) {
+            System.err.println(String.format("Security Warning Dialog '%s' has been accepted", dialog.getTitle()));
+            //robotConnection.send("DIALOG:" + dialog.getTitle());
+        }
+
+        private void SecurityWarning(SwingLibrary lib) {
             lib.runKeyword("select_dialog", new Object[]{"Security Warning"});
             //lib.runKeyword("push_button", new Object[]{"DoES not exists"});
             String buttonText = (String) lib.runKeyword("get_button_text", new Object[]{"1"});
@@ -168,23 +182,18 @@ class FindAppContextWithWindow implements Runnable {
             else {
                 lib.runKeyword("push_button", new Object[]{"Continue"});
             }
-            System.err.println(String.format("Security Warning Dialog '%s' has been accepted", dialog.getTitle()));
         }
 
-        private void SecurityInformation() {
-            SwingLibrary lib = new SwingLibrary();
+        private void SecurityInformation(SwingLibrary lib) {
             lib.runKeyword("select_dialog", new Object[]{"Security Information"});
             //lib.runKeyword("check_check_box", new Object[]{"0"});
             lib.runKeyword("push_button", new Object[]{"Run"});
-            System.err.println(String.format("Security Warning Dialog '%s' has been accepted", dialog.getTitle()));
         }
 
-        private void InstallJavaExtentension() {
-            SwingLibrary lib = new SwingLibrary();
+        private void InstallJavaExtentension(SwingLibrary lib) {
             lib.runKeyword("select_dialog", new Object[]{"Install Java Extension"});
             //lib.runKeyword("check_check_box", new Object[]{"0"});
             lib.runKeyword("push_button", new Object[]{"Install"});
-            System.err.println(String.format("Security Warning Dialog '%s' has been accepted", dialog.getTitle()));
         }
     }
 }
