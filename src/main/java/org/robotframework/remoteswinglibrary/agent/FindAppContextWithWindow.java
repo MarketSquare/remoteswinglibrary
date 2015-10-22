@@ -70,7 +70,7 @@ class FindAppContextWithWindow implements Runnable {
             for (Map.Entry<Dialog, SecurityDialogAccepter> entry: dialogs.entrySet()) {
                 Dialog dialog = entry.getKey();
                 SecurityDialogAccepter accepter = entry.getValue();
-                if (!accepter.done && !accepter.running) {
+                if (accepter.attempts > 0 && !accepter.running) {
                     accepter.running = true;
                     sun.awt.SunToolkit.invokeLaterOnAppContext(accepter.ctx, accepter);
                 }
@@ -126,10 +126,10 @@ class FindAppContextWithWindow implements Runnable {
     private class SecurityDialogAccepter implements Runnable {
 
         public boolean running = false;
-        public boolean done = false;
         private AppContext ctx;
         public Dialog dialog;
         private RobotConnection robotConnection;
+        public int attempts = 5;
 
         public SecurityDialogAccepter(Dialog dialog, AppContext ctx, RobotConnection robotConnection) {
             this.dialog = dialog;
@@ -156,12 +156,12 @@ class FindAppContextWithWindow implements Runnable {
                 }
                 else
                     System.err.println("Unrecognized dialog, skipping.");
-                done = true;
             } catch (Throwable t) {
                 System.err.println(String.format("Accepting Security Warning Dialog '%s' has failed.",
                         dialog.getTitle()));
             }
             running = false;
+            attempts--;
         }
 
 

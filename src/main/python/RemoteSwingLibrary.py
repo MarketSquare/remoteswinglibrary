@@ -82,7 +82,7 @@ class SimpleServer(SocketServer.StreamRequestHandler):
             logger.debug('Registered java remoteswinglibrary agent "%s" at %s' % \
                          (name, address))
             REMOTE_AGENTS_LIST.append(address, name)
-            self.request.sendall(data)
+            #self.request.sendall(data)
         elif fields[0] == 'DIALOG':
             title = ':'.join(fields[1:])
             logger.info('Security Warning "%s" was accepted automatically' % title)
@@ -235,8 +235,10 @@ class RemoteSwingLibrary(object):
         address = ('0.0.0.0', int(port))
         server = SocketServer.TCPServer(address, SimpleServer)
         server.allow_reuse_address = True
+        #t = threading.Thread(name="RemoteSwingLibrary registration server thread",
+        #                     target=server.serve_forever)
         t = threading.Thread(name="RemoteSwingLibrary registration server thread",
-                             target=server.serve_forever)
+                             target=server.serve_forever, args=(0.01,))
         t.setDaemon(True)
         t.start()
         return server.server_address[1]
