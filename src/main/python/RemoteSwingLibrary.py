@@ -214,6 +214,8 @@ class RemoteSwingLibrary(object):
 
         *debug*: optional flag that will start agent in mode with more logging for troubleshooting (set to TRUE to enable)
 
+        *close_security_dialogs*: optional flag for automatic security dialogs closing (set to TRUE to enable)
+
         NOTE! with special value 'TEST' starts a test application for documentation generation
         purposes `python -m robot.libdoc RemoteSwingLibrary::TEST RemoteSwingLibrary.html`
         """
