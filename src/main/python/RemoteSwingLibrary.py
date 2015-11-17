@@ -73,7 +73,6 @@ class SimpleServer(SocketServer.StreamRequestHandler):
 
     def handle(self):
         data = self.rfile.readline()[:-1]
-        #logger.debug("DATA: " + data)
         fields = data.decode().split(':')
         if fields[0] == 'PORT':
             port = fields[1]
@@ -82,7 +81,6 @@ class SimpleServer(SocketServer.StreamRequestHandler):
             logger.debug('Registered java remoteswinglibrary agent "%s" at %s' % \
                          (name, address))
             REMOTE_AGENTS_LIST.append(address, name)
-            #self.request.sendall(data)
         elif fields[0] == 'DIALOG':
             title = ':'.join(fields[1:])
             logger.info('Security Warning "%s" was accepted automatically' % title)

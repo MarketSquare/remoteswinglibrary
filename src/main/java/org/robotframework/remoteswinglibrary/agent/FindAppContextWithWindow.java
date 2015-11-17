@@ -141,7 +141,6 @@ class FindAppContextWithWindow implements Runnable {
             try {
                 String title = dialog.getTitle();
                 SwingLibrary lib = new SwingLibrary();
-                //System.err.println("DIALOG TITLE IS:: " + title);
                 if (title.equals("Security Warning")) {
                     SecurityWarning(lib);
                     LogSuccess(dialog);
@@ -172,7 +171,6 @@ class FindAppContextWithWindow implements Runnable {
 
         private void SecurityWarning(SwingLibrary lib) {
             lib.runKeyword("select_dialog", new Object[]{"Security Warning"});
-            //lib.runKeyword("push_button", new Object[]{"DoES not exists"});
             String buttonText = (String) lib.runKeyword("get_button_text", new Object[]{"1"});
             System.err.println("button name is: " + buttonText);
             if (buttonText.equals("Run")) {
@@ -186,13 +184,11 @@ class FindAppContextWithWindow implements Runnable {
 
         private void SecurityInformation(SwingLibrary lib) {
             lib.runKeyword("select_dialog", new Object[]{"Security Information"});
-            //lib.runKeyword("check_check_box", new Object[]{"0"});
             lib.runKeyword("push_button", new Object[]{"Run"});
         }
 
         private void InstallJavaExtentension(SwingLibrary lib) {
             lib.runKeyword("select_dialog", new Object[]{"Install Java Extension"});
-            //lib.runKeyword("check_check_box", new Object[]{"0"});
             lib.runKeyword("push_button", new Object[]{"Install"});
         }
     }
