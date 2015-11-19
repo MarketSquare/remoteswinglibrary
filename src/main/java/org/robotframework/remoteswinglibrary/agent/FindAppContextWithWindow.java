@@ -70,7 +70,7 @@ class FindAppContextWithWindow implements Runnable {
             for (Map.Entry<Dialog, SecurityDialogAccepter> entry: dialogs.entrySet()) {
                 Dialog dialog = entry.getKey();
                 SecurityDialogAccepter accepter = entry.getValue();
-                if (accepter.attempts > 0 && !accepter.running) {
+                if (accepter.attempts > 0 && !accepter.running && !accepter.done) {
                     accepter.running = true;
                     sun.awt.SunToolkit.invokeLaterOnAppContext(accepter.ctx, accepter);
                 }
@@ -130,6 +130,7 @@ class FindAppContextWithWindow implements Runnable {
         public Dialog dialog;
         private RobotConnection robotConnection;
         public int attempts = 5;
+        public boolean done = false;
 
         public SecurityDialogAccepter(Dialog dialog, AppContext ctx, RobotConnection robotConnection) {
             this.dialog = dialog;
@@ -167,6 +168,7 @@ class FindAppContextWithWindow implements Runnable {
         private void LogSuccess(Dialog dialog) {
             System.err.println(String.format("Security Warning Dialog '%s' has been accepted", dialog.getTitle()));
             //robotConnection.send("DIALOG:" + dialog.getTitle());
+            this.done = true;
         }
 
         private void SecurityWarning(SwingLibrary lib) {

@@ -14,10 +14,6 @@ Starting and stopping application with main window
      Start Application    myapp2    java org.robotframework.remoteswinglibrary.MySwingApp  timeout=5 seconds
      System Exit
 
-Close Security Dialogs
-     Start Application  securityDialogsApp  java org.robotframework.remoteswinglibrary.MyApp2  timeout=5 seconds
-     System Exit
-
 Start application removes the JAVA_TOOL_OPTIONS from enviroment
      Set environment variable    JAVA_TOOL_OPTIONS   ${EMPTY}
      Start Application    myapp2    java org.robotframework.remoteswinglibrary.MySwingApp  timeout=5 seconds
