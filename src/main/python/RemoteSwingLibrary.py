@@ -69,18 +69,23 @@ class AgentList(object):
 
 REMOTE_AGENTS_LIST = AgentList()
 
-class SimpleServer(SocketServer.BaseRequestHandler):
+class SimpleServer(SocketServer.StreamRequestHandler):
 
     def handle(self):
-        data = ''.join(iter(self.read_socket, ''))
-        port, name = data.decode().split(':', 1)
-        address = ':'.join([self.client_address[0], port])
-        logger.debug('Registered java remoteswinglibrary agent "%s" at %s' % \
-              (name, address))
-        REMOTE_AGENTS_LIST.append(address, name)
-
-    def read_socket(self):
-        return self.request.recv(1)
+        data = self.rfile.readline()[:-1]
+        fields = data.decode().split(':')
+        if fields[0] == 'PORT':
+            port = fields[1]
+            name = ':'.join(fields[2:])
+            address = ':'.join([self.client_address[0], port])
+            logger.debug('Registered java remoteswinglibrary agent "%s" at %s' % \
+                         (name, address))
+            REMOTE_AGENTS_LIST.append(address, name)
+        elif fields[0] == 'DIALOG':
+            title = ':'.join(fields[1:])
+            logger.info('Security Warning "%s" was accepted automatically' % title)
+        else:
+            logger.debug('Unknown message "%s"' % fields[0])
 
 
 class InvalidURLException(Exception):
@@ -116,13 +121,18 @@ class OldRobotImporterWrapper(_RobotImporterWrapper):
 class RobotLibraryImporter(object):
     """Class for manipulating Robot Framework library imports during runtime"""
 
+    args = ()
+
+    def set_args(self, port=None, debug=False, close_security_dialogs=False):
+        self.args = (port, debug, close_security_dialogs)
+
     def re_import_remoteswinglibrary(self):
         if EXECUTION_CONTEXTS.current is None:
             return
         name = 'RemoteSwingLibrary'
         self._remove_lib_from_current_namespace(name)
         self._import_wrapper().remove_library(name, [])
-        BuiltIn().import_library(name)
+        BuiltIn().import_library(name, *self.args)
 
     def _import_wrapper(self):
         if hasattr(IMPORTER, '_library_cache'):
@@ -203,18 +213,21 @@ class RemoteSwingLibrary(object):
     AGENT_PATH = os.path.abspath(os.path.dirname(__file__))
     _output_dir = ''
 
-    def __init__(self, port=None, debug=False):
+    def __init__(self, port=None, debug=False, close_security_dialogs=False):
         """
         *port*: optional port for the server receiving connections from remote agents
 
         *debug*: optional flag that will start agent in mode with more logging for troubleshooting (set to TRUE to enable)
 
+        *close_security_dialogs*: optional flag for automatic security dialogs closing (set to TRUE to enable)
+
         NOTE! with special value 'TEST' starts a test application for documentation generation
         purposes `python -m robot.libdoc RemoteSwingLibrary::TEST RemoteSwingLibrary.html`
         """
+        self.ROBOT_NAMESPACE_BRIDGE.set_args(port, debug, close_security_dialogs)
         if RemoteSwingLibrary.PORT is None:
             RemoteSwingLibrary.PORT = self._start_port_server(0 if port == 'TEST' else port or 0)
-        self._create_env(bool(debug), port != 'TEST')
+        self._create_env(bool(debug), port != 'TEST', close_security_dialogs=bool(close_security_dialogs))
         if port == 'TEST':
             self.start_application('docgenerator', 'java -jar %s' % RemoteSwingLibrary.AGENT_PATH, timeout=4.0)
 
@@ -228,16 +241,20 @@ class RemoteSwingLibrary(object):
         address = ('0.0.0.0', int(port))
         server = SocketServer.TCPServer(address, SimpleServer)
         server.allow_reuse_address = True
+        #t = threading.Thread(name="RemoteSwingLibrary registration server thread",
+        #                     target=server.serve_forever)
         t = threading.Thread(name="RemoteSwingLibrary registration server thread",
-                             target=server.serve_forever)
+                             target=server.serve_forever, args=(0.01,))
         t.setDaemon(True)
         t.start()
         return server.server_address[1]
 
-    def _create_env(self, debug, robot_running=True):
+    def _create_env(self, debug, robot_running=True, close_security_dialogs=False):
         agent_command = '-javaagent:"%s"=127.0.0.1:%s' % (RemoteSwingLibrary.AGENT_PATH, RemoteSwingLibrary.PORT)
         if debug:
             agent_command += ':DEBUG'
+        if close_security_dialogs:
+            agent_command += ':CLOSE_SECURITY_DIALOGS'
         self._agent_command = agent_command
         if robot_running:
             BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPATH}', self._escape_path(RemoteSwingLibrary.AGENT_PATH))
