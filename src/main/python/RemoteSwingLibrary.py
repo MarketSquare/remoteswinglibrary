@@ -121,13 +121,18 @@ class OldRobotImporterWrapper(_RobotImporterWrapper):
 class RobotLibraryImporter(object):
     """Class for manipulating Robot Framework library imports during runtime"""
 
+    args = ()
+
+    def set_args(self, port=None, debug=False, close_security_dialogs=False):
+        self.args = (port, debug, close_security_dialogs)
+
     def re_import_remoteswinglibrary(self):
         if EXECUTION_CONTEXTS.current is None:
             return
         name = 'RemoteSwingLibrary'
         self._remove_lib_from_current_namespace(name)
         self._import_wrapper().remove_library(name, [])
-        BuiltIn().import_library(name)
+        BuiltIn().import_library(name, *self.args)
 
     def _import_wrapper(self):
         if hasattr(IMPORTER, '_library_cache'):
@@ -219,6 +224,7 @@ class RemoteSwingLibrary(object):
         NOTE! with special value 'TEST' starts a test application for documentation generation
         purposes `python -m robot.libdoc RemoteSwingLibrary::TEST RemoteSwingLibrary.html`
         """
+        self.ROBOT_NAMESPACE_BRIDGE.set_args(port, debug, close_security_dialogs)
         if RemoteSwingLibrary.PORT is None:
             RemoteSwingLibrary.PORT = self._start_port_server(0 if port == 'TEST' else port or 0)
         self._create_env(bool(debug), port != 'TEST', close_security_dialogs=bool(close_security_dialogs))
