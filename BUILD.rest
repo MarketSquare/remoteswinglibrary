@@ -14,6 +14,13 @@ RemoteSwingLibrary uses Apache Maven as a build tool.
 
 - `mvn clean verify` run acceptance tests
 
+
+Testing
+=======
+
+Run ``python run_test.py --help`` to find what options for testing are possible.
+
+
 Releasing
 =========
 
