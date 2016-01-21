@@ -11,16 +11,21 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-from __future__ import with_statement
 from contextlib import contextmanager
 import inspect
 import os
+import sys
 import tempfile
 import threading
 import time
 import traceback
-import SocketServer
-from xmlrpclib import ProtocolError
+IS_PYTHON3 = sys.version_info[0] >= 3
+if IS_PYTHON3:
+    import socketserver as SocketServer
+    from xmlrpc.client import ProtocolError
+else:
+    import SocketServer
+    from xmlrpclib import ProtocolError
 import uuid
 
 from robot.errors import HandlerExecutionFailed, TimeoutError
@@ -296,14 +301,13 @@ class RemoteSwingLibrary(object):
         """
         os.environ['JAVA_TOOL_OPTIONS'] = self._agent_command
         logger.debug("Set JAVA_TOOL_OPTIONS='%s'" % self._agent_command)
-
-        t = tempfile.NamedTemporaryFile(prefix='grant_all_', suffix='.policy', delete=False)
-        t.write("""
-            grant {
-                permission java.security.AllPermission;
-            };""")
-        t.close()
-
+        with tempfile.NamedTemporaryFile(prefix='grant_all_', suffix='.policy', delete=False) as t:
+            text = b"""
+                grant {
+                    permission java.security.AllPermission;
+                };
+                """
+            t.write(text)
         java_policy = '-Djava.security.policy="%s"' % t.name
         os.environ['_JAVA_OPTIONS'] = java_policy
         logger.debug("Set _JAVA_OPTIONS='%s'" % java_policy)
@@ -407,7 +411,7 @@ class RemoteSwingLibrary(object):
             BuiltIn().run_keyword(kw, *args)
         try:
             self._application_should_be_closed(timeout=timestr_to_secs(timeout))
-        except RemoteSwingLibraryTimeoutError, t:
+        except RemoteSwingLibraryTimeoutError as t:
             logger.warn('Application is not closed before timeout - killing application')
             self._take_screenshot()
             self.system_exit()
@@ -415,7 +419,7 @@ class RemoteSwingLibrary(object):
 
     def _take_screenshot(self):
         logdir = self._get_log_dir()
-        filepath = os.path.join(logdir, 'remoteswinglibrary-screenshot%s.png' % long(time.time()*1000))
+        filepath = os.path.join(logdir, 'remoteswinglibrary-screenshot%s.png' % int(time.time()*1000))
         self._run_from_services('takeScreenshot', filepath)
         logger.info('<img src="%s"></img>' % get_link_path(filepath, logdir), html=True)
 
@@ -435,17 +439,17 @@ class RemoteSwingLibrary(object):
     def _run_and_ignore_connection_lost(self):
         try:
             yield
-        except RuntimeError, r: # disconnection from remotelibrary
-            if 'Connection to remote server broken:' in r.message:
+        except RuntimeError as r: # disconnection from remotelibrary
+            if 'Connection to remote server broken:' in r.args[0]:
                 logger.info('Connection died as expected')
                 return
             raise
-        except HandlerExecutionFailed, e: # disconnection from xmlrpc wrapped in robot keyword
-            if any(elem in e.message for elem in ('Connection to remote server broken:', 'ProtocolError')):
+        except HandlerExecutionFailed as e: # disconnection from xmlrpc wrapped in robot keyword
+            if any(elem in e.args[0] for elem in ('Connection to remote server broken:', 'ProtocolError')):
                 logger.info('Connection died as expected')
                 return
             raise
-        except ProtocolError, r: # disconnection from xmlrpc in jython on some platforms
+        except ProtocolError as r: # disconnection from xmlrpc in jython on some platforms
             logger.info('Connection died as expected')
             return
 
