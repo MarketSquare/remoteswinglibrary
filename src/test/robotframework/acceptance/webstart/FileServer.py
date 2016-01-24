@@ -1,6 +1,14 @@
-from SimpleHTTPServer import SimpleHTTPRequestHandler
+from __future__ import print_function
+import sys
+IS_PYTHON3 = sys.version_info[0] >= 3
+if IS_PYTHON3:
+    from http.server import SimpleHTTPRequestHandler
+    from socketserver import TCPServer, ThreadingMixIn
+else:
+    from SimpleHTTPServer import SimpleHTTPRequestHandler
+    from SocketServer import TCPServer, ThreadingMixIn
 from os import chdir, path
-from SocketServer import TCPServer, ThreadingMixIn
+
 import threading
 import time
 
@@ -34,7 +42,7 @@ class FileServer(ThreadingMixIn, TCPServer):
     def start(self):
         TCPServer.__init__(self, ('localhost', int(HTTP_PORT)), CustomHandler)
         self.RESOURCE_LOCATION = path.abspath(path.dirname(__file__))
-        print "Server serving from DocumentRoot:" + self.RESOURCE_LOCATION
+        print("Server serving from DocumentRoot:" + self.RESOURCE_LOCATION)
         chdir(self.RESOURCE_LOCATION)
         server_thread = threading.Thread(name='test_file_server', target=self.serve_forever)
         server_thread.daemon = True
@@ -45,7 +53,7 @@ class FileServer(ThreadingMixIn, TCPServer):
             self.shutdown()
         else:
             self.server_close()
-        print "Server stopped"
+        print("Server stopped")
 
 if __name__ == '__main__':
     fs = FileServer()
