@@ -73,7 +73,10 @@ if __name__ == '__main__':
         sys.exit(251)
 
     if '--nobuild' not in sys.argv:
-        call(['mvn', 'clean', 'package'])
+        if sys.platform.startswith('win'):
+            call(['mvn', 'clean', 'package'], shell=True)
+        else:
+            call(['mvn', 'clean', 'package'])
 
     interpreters = [inter for inter in sys.argv[1:] if not inter.startswith('-')]
     if len(interpreters) == 0:
