@@ -40,6 +40,11 @@ from robot.utils import timestr_to_secs, get_link_path
 from robotbackgroundlogger import BackgroundLogger
 logger = BackgroundLogger()
 
+try:
+    from robot.libraries.BuiltIn import RobotNotRunningError
+except ImportError:  # Support RF < 2.8.5
+    RobotNotRunningError = AttributeError
+
 
 class AgentList(object):
     NEW = 'NEW'
@@ -232,7 +237,7 @@ class RemoteSwingLibrary(object):
         self.ROBOT_NAMESPACE_BRIDGE.set_args(port, debug, close_security_dialogs)
         if RemoteSwingLibrary.PORT is None:
             RemoteSwingLibrary.PORT = self._start_port_server(0 if port == 'TEST' else port or 0)
-        self._create_env(bool(debug), port != 'TEST', close_security_dialogs=bool(close_security_dialogs))
+        self._create_env(bool(debug), close_security_dialogs=bool(close_security_dialogs))
         if port == 'TEST':
             self.start_application('docgenerator', 'java -jar %s' % RemoteSwingLibrary.AGENT_PATH, timeout=4.0)
 
@@ -254,17 +259,19 @@ class RemoteSwingLibrary(object):
         t.start()
         return server.server_address[1]
 
-    def _create_env(self, debug, robot_running=True, close_security_dialogs=False):
+    def _create_env(self, debug, close_security_dialogs=False):
         agent_command = '-javaagent:"%s"=127.0.0.1:%s' % (RemoteSwingLibrary.AGENT_PATH, RemoteSwingLibrary.PORT)
         if debug:
             agent_command += ':DEBUG'
         if close_security_dialogs:
             agent_command += ':CLOSE_SECURITY_DIALOGS'
         self._agent_command = agent_command
-        if robot_running:
+        try:
             BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPATH}', self._escape_path(RemoteSwingLibrary.AGENT_PATH))
             BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPORT}', RemoteSwingLibrary.PORT)
             self._output_dir = BuiltIn().get_variable_value('${OUTPUTDIR}')
+        except RobotNotRunningError:
+            pass
         logger.info(agent_command)
 
 
