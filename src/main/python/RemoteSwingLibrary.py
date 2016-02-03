@@ -13,6 +13,7 @@
 #  limitations under the License.
 from contextlib import contextmanager
 import inspect
+import math
 import os
 import sys
 import tempfile
@@ -133,8 +134,8 @@ class RobotLibraryImporter(object):
 
     args = ()
 
-    def set_args(self, port=None, aphost='127.0.0.1', apport=None, debug=False, close_security_dialogs=False):
-        self.args = (port, aphost, apport, debug, close_security_dialogs)
+    def set_args(self, port=None, aphost='127.0.0.1', apport=None, debug=False, close_security_dialogs=False, __reload=True):
+        self.args = (port, aphost, apport, debug, close_security_dialogs, __reload)
 
     def re_import_remoteswinglibrary(self):
         if EXECUTION_CONTEXTS.current is None:
@@ -226,11 +227,15 @@ class RemoteSwingLibrary(object):
     AGENT_PATH = os.path.abspath(os.path.dirname(__file__))
     _output_dir = ''
 
-    def __init__(self, port=None, aphost='127.0.0.1', apport=None, debug=False, close_security_dialogs=False):
+    def __init__(self, port=None, aphost='127.0.0.1', apport=None, debug=False,
+                 close_security_dialogs=False, __reload=False):
         """
         *port*: optional port for the server receiving connections from remote agents
 
-        *...*
+        *apport*: optional port for server receiving connections of remote agent.
+        Should be used if you want to reconnect to same application between robot runs.
+
+        *aphost*: opptional network address of application we want to connect into
 
         *debug*: optional flag that will start agent in mode with more logging for troubleshooting (set to TRUE to enable)
 
@@ -239,6 +244,10 @@ class RemoteSwingLibrary(object):
         NOTE! with special value 'TEST' starts a test application for documentation generation
         purposes `python -m robot.libdoc RemoteSwingLibrary::TEST RemoteSwingLibrary.html`
         """
+        if not __reload:
+            RemoteSwingLibrary.CURRENT = None
+            global REMOTE_AGENTS_LIST
+            REMOTE_AGENTS_LIST = AgentList()
         self.ROBOT_NAMESPACE_BRIDGE.set_args(port, aphost, apport, debug, close_security_dialogs)
         if RemoteSwingLibrary.PORT is None:
             RemoteSwingLibrary.PORT = self._start_port_server(0 if port == 'TEST' else port or 0)
@@ -507,9 +516,15 @@ class RemoteSwingLibrary(object):
         return env
 
     def get_keyword_names(self):
+        # get_keyword names takes argument `attempts` which makes it
+        # wait 0,1,2,3,4,...,attempts-1 seconds in those attempts
+        # we want to make total wait time to be close to original TIMEOUT
+        # to do it we find minimal n which satisfies ((n)*(n-1))/2 >= TIMEOUT
+        # solution is ceil(sqrt(TIMEOUT*2*4+1)/2+0.5)
+        attempts = int(math.ceil(math.sqrt(RemoteSwingLibrary.TIMEOUT*2*4+1)/2+0.5))
         if self.current:
             return RemoteSwingLibrary.KEYWORDS + [kw for
-                                      kw in self.current.get_keyword_names(attempts=RemoteSwingLibrary.TIMEOUT)
+                                      kw in self.current.get_keyword_names(attempts=attempts)
                                       if kw not in ['startApplication',
                                                     'launchApplication',
                                                     'startApplicationInSeparateThread']]
