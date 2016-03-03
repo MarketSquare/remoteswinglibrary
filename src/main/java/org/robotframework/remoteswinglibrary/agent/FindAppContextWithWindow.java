@@ -31,15 +31,17 @@ class FindAppContextWithWindow implements Runnable {
 
     String host;
     int port;
+    int apport;
     boolean debug;
     boolean closeSecurityDialogs;
     RobotConnection robotConnection;
 
     HashMap<Dialog, SecurityDialogAccepter> dialogs = new HashMap<Dialog, SecurityDialogAccepter>();
 
-    public FindAppContextWithWindow(String host, int port, boolean debug, boolean closeSecurityDialogs) {
+    public FindAppContextWithWindow(String host, int port, int apport, boolean debug, boolean closeSecurityDialogs) {
         this.host = host;
         this.port = port;
+        this.apport = apport;
         this.debug = debug;
         this.closeSecurityDialogs = closeSecurityDialogs;
     }
@@ -49,7 +51,7 @@ class FindAppContextWithWindow implements Runnable {
             robotConnection = new RobotConnection(host, port);
             //robotConnection.connect();
             AppContext appContext = getAppContextWithWindow();
-            sun.awt.SunToolkit.invokeLaterOnAppContext(appContext, new ServerThread(robotConnection, debug));
+            sun.awt.SunToolkit.invokeLaterOnAppContext(appContext, new ServerThread(robotConnection, apport, debug));
         } catch (Exception e) {
             if (debug) {
                 e.printStackTrace();
@@ -85,8 +87,6 @@ class FindAppContextWithWindow implements Runnable {
               (Vector<WeakReference<Window>>)ctx.get(Window.class);
         if (windowList == null)
             return false;
-        // make a copy of the vector to prevent concurrency errors.
-        windowList = new Vector<WeakReference<Window>>(windowList);
         for (WeakReference<Window> ref:windowList) {
             Window window = ref.get();
             if (debug) logWindowDetails("Trying to connect to", window);
