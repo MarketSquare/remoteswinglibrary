@@ -41,7 +41,7 @@
     <dependency>
     <groupId>org.robotframework</groupId>
     <artifactId>swinglibrary</artifactId>
-    <version>1.9.4</version>
+    <version>1.9.5</version>
     </dependency>
   </dependencies>
 
@@ -117,7 +117,7 @@
                 <include>abbot:abbot</include>
                 <include>gnu-regexp:gnu-regexp</include>
                 <include>junit:junit</include>
-                <include>jretrofit:jretrofit</include>
+                <include>org.jretrofit:jretrofit</include>
                 <include>commons-collections:commons-collections</include>
                 <include>com.thoughworks.parameter:parameter</include>
               </includes>
