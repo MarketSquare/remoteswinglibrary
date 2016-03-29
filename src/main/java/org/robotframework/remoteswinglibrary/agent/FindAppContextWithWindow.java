@@ -142,6 +142,8 @@ class FindAppContextWithWindow implements Runnable {
             try {
                 String title = dialog.getTitle();
                 SwingLibrary lib = new SwingLibrary();
+                System.err.println(String.format("Handling Security Warning Dialog '%s'.",
+                        dialog.getTitle()));
                 if (title.equals("Security Warning")) {
                     SecurityWarning(lib);
                     LogSuccess(dialog);
@@ -159,6 +161,7 @@ class FindAppContextWithWindow implements Runnable {
             } catch (Throwable t) {
                 System.err.println(String.format("Accepting Security Warning Dialog '%s' has failed.",
                         dialog.getTitle()));
+                t.printStackTrace();
             }
             running = false;
             attempts--;
@@ -173,9 +176,9 @@ class FindAppContextWithWindow implements Runnable {
 
         private void SecurityWarning(SwingLibrary lib) {
             lib.runKeyword("select_dialog", new Object[]{"Security Warning"});
-            String buttonText = (String) lib.runKeyword("get_button_text", new Object[]{"1"});
-            System.err.println("button name is: " + buttonText);
-            if (buttonText.equals("Run")) {
+            String buttonText = (String) lib.runKeyword("get_button_text", new Object[]{"0"});
+            System.err.println("button text is: " + buttonText);
+            if (buttonText.equals("More Information")) {
                 lib.runKeyword("check_check_box", new Object[]{"0"});
                 lib.runKeyword("push_button", new Object[]{"Run"});
             }
