@@ -18,7 +18,7 @@ RemoteSwingLibrary uses Apache Maven as a build tool.
 Testing
 =======
 
-Run ``python run_test.py --help`` to find what options for testing are possible.
+Run ``python run_atest.py --help`` to find what options for testing are possible.
 
 
 Releasing
