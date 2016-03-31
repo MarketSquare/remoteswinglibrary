@@ -182,6 +182,7 @@ class RemoteSwingLibrary(object):
     - [#Start Application|Start Application]
     - [#System Exit|System Exit]
     - [#Switch To Application|Switch To Application]
+    - [#Connect To Application|Connect To Application]
 
     RemoteSwingLibrary also introduces two global variables that can be used during testing:
     - ${REMOTESWINGLIBRARYPATH} the location of the remoteswinglibrary jar file.
@@ -373,6 +374,10 @@ class RemoteSwingLibrary(object):
             raise
 
     def connect_to_application(self, alias, timeout=60, name_contains=None):
+        """Connects to application that was started in earlier RobotFramework run.
+        *apport* import option needs to be set to use this keyword.
+        Application that we want to connect into needs to be started by Start Application keyword when using same *apport* value.
+        """
         try:
             self._application_started(alias, timeout=timeout, name_contains=name_contains, accept_old=True)
         except TimeoutError:
