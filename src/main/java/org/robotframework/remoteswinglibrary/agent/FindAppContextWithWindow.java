@@ -87,6 +87,8 @@ class FindAppContextWithWindow implements Runnable {
               (Vector<WeakReference<Window>>)ctx.get(Window.class);
         if (windowList == null)
             return false;
+        // make a copy of the vector to prevent concurrency errors.
+        windowList = new Vector<WeakReference<Window>>(windowList);
         for (WeakReference<Window> ref:windowList) {
             Window window = ref.get();
             if (debug) logWindowDetails("Trying to connect to", window);
