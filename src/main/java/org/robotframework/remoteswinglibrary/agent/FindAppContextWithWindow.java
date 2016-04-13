@@ -21,10 +21,7 @@ import sun.awt.AppContext;
 
 import java.awt.*;
 import java.lang.ref.WeakReference;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.Vector;
+import java.util.*;
 
 
 class FindAppContextWithWindow implements Runnable {
@@ -133,6 +130,7 @@ class FindAppContextWithWindow implements Runnable {
         private RobotConnection robotConnection;
         public int attempts = 5;
         public boolean done = false;
+        SwingLibrary lib;
 
         public SecurityDialogAccepter(Dialog dialog, AppContext ctx, RobotConnection robotConnection) {
             this.dialog = dialog;
@@ -143,19 +141,19 @@ class FindAppContextWithWindow implements Runnable {
         public void run() {
             try {
                 String title = dialog.getTitle();
-                SwingLibrary lib = new SwingLibrary();
+                lib = new SwingLibrary();
                 System.err.println(String.format("Handling Security Warning Dialog '%s'.",
                         dialog.getTitle()));
                 if (title.equals("Security Warning")) {
-                    SecurityWarning(lib);
+                    SecurityWarning();
                     LogSuccess(dialog);
                 }
                 else if (title.equals("Security Information")) {
-                    SecurityInformation(lib);
+                    SecurityInformation();
                     LogSuccess(dialog);
                 }
                 else if (title.equals("Install Java Extension")) {
-                    InstallJavaExtentension(lib);
+                    InstallJavaExtentension();
                     LogSuccess(dialog);
                 }
                 else
@@ -176,25 +174,43 @@ class FindAppContextWithWindow implements Runnable {
             this.done = true;
         }
 
-        private void SecurityWarning(SwingLibrary lib) {
+        private void SecurityWarning() {
             lib.runKeyword("select_dialog", new Object[]{"Security Warning"});
-            String buttonText = (String) lib.runKeyword("get_button_text", new Object[]{"0"});
-            System.err.println("button text is: " + buttonText);
-            if (buttonText.equals("More Information")) {
+            // button 0 is "More Info"
+            ArrayList<String> buttons = getButtons();
+            System.err.println("buttons: " + Arrays.toString(buttons.toArray()));
+            if (buttons.contains("Run")) {
                 lib.runKeyword("check_check_box", new Object[]{"0"});
                 lib.runKeyword("push_button", new Object[]{"Run"});
             }
-            else {
+            else { // "Continue"
                 lib.runKeyword("push_button", new Object[]{"Continue"});
             }
         }
 
-        private void SecurityInformation(SwingLibrary lib) {
+        private ArrayList<String> getButtons() {
+            ArrayList<String> buttons = new ArrayList<String>();
+            int buttonIndex = 0;
+            while (buttons.size() < 2)
+            {
+                if (buttonIndex >= 5)
+                    break;
+                String buttonText = (String) lib.runKeyword("get_button_text",
+                        new Object[]{Integer.toString(buttonIndex)});
+                buttonIndex++;
+                if (buttonText.equals("More Info"))
+                    continue;
+                buttons.add(buttonText);
+            }
+            return buttons;
+        }
+
+        private void SecurityInformation() {
             lib.runKeyword("select_dialog", new Object[]{"Security Information"});
             lib.runKeyword("push_button", new Object[]{"Run"});
         }
 
-        private void InstallJavaExtentension(SwingLibrary lib) {
+        private void InstallJavaExtentension() {
             lib.runKeyword("select_dialog", new Object[]{"Install Java Extension"});
             lib.runKeyword("push_button", new Object[]{"Install"});
         }
