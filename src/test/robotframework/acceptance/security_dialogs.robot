@@ -7,12 +7,14 @@ Suite setup    Set Environment Variable      CLASSPATH     target/test-classes
 
 *** Test Cases ***
 Close Security Dialogs
-     Start Application  securityDialogsApp  java org.robotframework.remoteswinglibrary.SecurityDialogsApp  timeout=30 seconds
-     System Exit
+     Start Application  App  java org.robotframework.remoteswinglibrary.SecurityDialogsApp  timeout=30 seconds
+     Select Main Window
+     Close Window  Test
 
 Close Security Dialogs Again
-     Start Application  securityDialogsApp  java org.robotframework.remoteswinglibrary.SecurityDialogsApp  timeout=30 seconds
-     System Exit
+     Start Application  App  java org.robotframework.remoteswinglibrary.SecurityDialogsApp  timeout=30 seconds
+     Select Main Window
+     Close Window  Test
 
 *** Keywords ***
 Keyword Should Not Exist

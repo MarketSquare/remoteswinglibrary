@@ -249,12 +249,13 @@ class RemoteSwingLibrary(object):
             RemoteSwingLibrary.CURRENT = None
             global REMOTE_AGENTS_LIST
             REMOTE_AGENTS_LIST = AgentList()
+            RemoteSwingLibrary.PORT = None
         self.ROBOT_NAMESPACE_BRIDGE.set_args(port, aphost, apport, debug, close_security_dialogs)
         if RemoteSwingLibrary.PORT is None:
             RemoteSwingLibrary.PORT = self._start_port_server(0 if port == 'TEST' else port or 0)
         RemoteSwingLibrary.APHOST = aphost
         RemoteSwingLibrary.APPORT = apport
-        self._create_env(bool(debug), close_security_dialogs=bool(close_security_dialogs))
+        self._create_env(bool(debug), bool(close_security_dialogs))
         if port == 'TEST':
             self.start_application('docgenerator', 'java -jar %s' % RemoteSwingLibrary.AGENT_PATH, timeout=4.0)
 
@@ -276,7 +277,7 @@ class RemoteSwingLibrary(object):
         t.start()
         return server.server_address[1]
 
-    def _create_env(self, debug, close_security_dialogs=False):
+    def _create_env(self, debug, close_security_dialogs):
         agent_command = '-javaagent:"%s"=127.0.0.1:%s' % (RemoteSwingLibrary.AGENT_PATH, RemoteSwingLibrary.PORT)
         if RemoteSwingLibrary.APPORT:
             agent_command += ':APPORT=%s' % RemoteSwingLibrary.APPORT

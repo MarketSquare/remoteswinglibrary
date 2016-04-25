@@ -7,6 +7,7 @@ public class SecurityDialogsApp extends JFrame {
     public SecurityDialogsApp() {
 
         super();
+        setTitle("Test");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         pack();
         SecurityWarningContiune();
