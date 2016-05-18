@@ -20,6 +20,9 @@ import tempfile
 import threading
 import time
 import traceback
+
+import swinglibrary
+
 IS_PYTHON3 = sys.version_info[0] >= 3
 if IS_PYTHON3:
     import socketserver as SocketServer
@@ -528,19 +531,22 @@ class RemoteSwingLibrary(object):
         # to do it we find minimal n which satisfies ((n)*(n-1))/2 >= TIMEOUT
         # solution is ceil(sqrt(TIMEOUT*2*4+1)/2+0.5)
         attempts = int(math.ceil(math.sqrt(RemoteSwingLibrary.TIMEOUT*2*4+1)/2+0.5))
+        overrided_keywords = ['startApplication',
+                              'launchApplication',
+                              'startApplicationInSeparateThread']
         if self.current:
             return RemoteSwingLibrary.KEYWORDS + [kw for
                                       kw in self.current.get_keyword_names(attempts=attempts)
-                                      if kw not in ['startApplication',
-                                                    'launchApplication',
-                                                    'startApplicationInSeparateThread']]
-        return RemoteSwingLibrary.KEYWORDS
+                                      if kw not in overrided_keywords]
+        return RemoteSwingLibrary.KEYWORDS + [kw for kw in swinglibrary.keywords
+                                              if kw not in overrided_keywords]
 
     def get_keyword_arguments(self, name):
         if name in RemoteSwingLibrary.KEYWORDS:
             return self._get_args(name)
         if self.current:
             return self.current.get_keyword_arguments(name)
+        return swinglibrary.keyword_arguments[name]
 
     def _get_args(self, method_name):
         spec = inspect.getargspec(getattr(self, method_name))
@@ -559,9 +565,14 @@ class RemoteSwingLibrary(object):
             return RemoteSwingLibrary.__doc__
         if name in RemoteSwingLibrary.KEYWORDS or name == '__init__':
             return getattr(self, name).__doc__
-        return self.current.get_keyword_documentation(name)
+        if self.current:
+            return self.current.get_keyword_documentation(name)
+        return swinglibrary.keyword_documentation[name]
 
     def run_keyword(self, name, arguments, kwargs):
         if name in RemoteSwingLibrary.KEYWORDS:
             return getattr(self, name)(*arguments, **kwargs)
-        return self.current.run_keyword(name, arguments, kwargs)
+        if self.current:
+            return self.current.run_keyword(name, arguments, kwargs)
+        if name in swinglibrary.keywords:
+            raise Exception("To use this keyword you need to connect to application first.")
