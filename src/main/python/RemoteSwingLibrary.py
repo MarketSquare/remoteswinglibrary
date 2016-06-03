@@ -244,6 +244,12 @@ class RemoteSwingLibrary(object):
 
         NOTE! with special value 'TEST' starts a test application for documentation generation
         purposes `python -m robot.libdoc RemoteSwingLibrary::TEST RemoteSwingLibrary.html`
+
+        NOTE! RemoteSwingLibrary is a so called Global Scope library. This means when it is imported once it will be
+        available until end of robot run. If Robot encounters another import of RemoteSwingLibrary with different
+        import parameters the library will be reloaded and new options will be in use. You should be careful if you
+        import RemoteSwingLibrary with different options in multiple test suites and resources.
+
         """
         if not __reload:
             RemoteSwingLibrary.CURRENT = None
