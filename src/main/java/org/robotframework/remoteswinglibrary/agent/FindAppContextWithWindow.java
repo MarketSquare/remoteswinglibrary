@@ -140,21 +140,26 @@ class FindAppContextWithWindow implements Runnable {
 
         public void run() {
             try {
+                ArrayList<String> dialogTitles = new ArrayList<String>();
+                dialogTitles.add("Security Warning");
+                dialogTitles.add("Security Information");
+                dialogTitles.add("Install Java Extension");
+
                 String title = dialog.getTitle();
-                lib = new SwingLibrary();
-                System.err.println(String.format("Handling Security Warning Dialog '%s'.",
+                System.err.println(String.format("Handling Dialog '%s'.",
                         dialog.getTitle()));
-                if (title.equals("Security Warning")) {
-                    SecurityWarning();
-                    LogSuccess(dialog);
-                }
-                else if (title.equals("Security Information")) {
-                    SecurityInformation();
-                    LogSuccess(dialog);
-                }
-                else if (title.equals("Install Java Extension")) {
-                    InstallJavaExtentension();
-                    LogSuccess(dialog);
+
+                if (dialogTitles.contains(title)) {
+                    lib = new SwingLibrary();
+                    lib.runKeyword("select_dialog", new Object[]{title});
+                    long oldTimeout = (Long) lib.runKeyword("Set Jemmy Timeout", new Object[]{"ComponentOperator.WaitComponentTimeout", "1"});
+                    checkCheckboxes();
+                    clickAcceptButton();
+                    lib.runKeyword("Set Jemmy Timeout", new Object[]{"ComponentOperator.WaitComponentTimeout", oldTimeout});
+
+                    System.err.println(String.format("Security Warning Dialog '%s' has been accepted", dialog.getTitle()));
+                    //robotConnection.send("DIALOG:" + dialog.getTitle());
+                    this.done = true;
                 }
                 else
                     System.err.println("Unrecognized dialog, skipping.");
@@ -167,52 +172,34 @@ class FindAppContextWithWindow implements Runnable {
             attempts--;
         }
 
+        private void checkCheckboxes() {
+            ArrayList<String> checkboxList = new ArrayList<String>();
+            checkboxList.add("I accept the risk and want to run this application.");;
 
-        private void LogSuccess(Dialog dialog) {
-            System.err.println(String.format("Security Warning Dialog '%s' has been accepted", dialog.getTitle()));
-            //robotConnection.send("DIALOG:" + dialog.getTitle());
-            this.done = true;
-        }
-
-        private void SecurityWarning() {
-            lib.runKeyword("select_dialog", new Object[]{"Security Warning"});
-            // button 0 is "More Info"
-            ArrayList<String> buttons = getButtons();
-            System.err.println("buttons: " + Arrays.toString(buttons.toArray()));
-            if (buttons.contains("Run")) {
-                lib.runKeyword("check_check_box", new Object[]{"0"});
-                lib.runKeyword("push_button", new Object[]{"Run"});
-            }
-            else { // "Continue"
-                lib.runKeyword("push_button", new Object[]{"Continue"});
+            for (String text: checkboxList) {
+                try {
+                    lib.runKeyword("check_check_box", new Object[]{text});
+                    return;
+                }
+                catch (Throwable t) {
+                }
             }
         }
 
-        private ArrayList<String> getButtons() {
-            ArrayList<String> buttons = new ArrayList<String>();
-            int buttonIndex = 0;
-            while (buttons.size() < 2)
-            {
-                if (buttonIndex >= 5)
-                    break;
-                String buttonText = (String) lib.runKeyword("get_button_text",
-                        new Object[]{Integer.toString(buttonIndex)});
-                buttonIndex++;
-                if (buttonText.equals("More Info"))
-                    continue;
-                buttons.add(buttonText);
+        private void clickAcceptButton() {
+            ArrayList<String> acceptButtonList = new ArrayList<String>();
+            acceptButtonList.add("Run");
+            acceptButtonList.add("Continue");
+            acceptButtonList.add("Install");
+
+            for (String text: acceptButtonList) {
+                try {
+                    lib.runKeyword("push_button", new Object[]{text});
+                    return;
+                }
+                catch (Throwable t) {
+                }
             }
-            return buttons;
-        }
-
-        private void SecurityInformation() {
-            lib.runKeyword("select_dialog", new Object[]{"Security Information"});
-            lib.runKeyword("push_button", new Object[]{"Run"});
-        }
-
-        private void InstallJavaExtentension() {
-            lib.runKeyword("select_dialog", new Object[]{"Install Java Extension"});
-            lib.runKeyword("push_button", new Object[]{"Install"});
         }
     }
 }
