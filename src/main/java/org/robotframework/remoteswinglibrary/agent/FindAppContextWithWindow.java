@@ -152,12 +152,15 @@ class FindAppContextWithWindow implements Runnable {
                 if (dialogTitles.contains(title)) {
                     lib = new SwingLibrary();
                     lib.runKeyword("select_dialog", new Object[]{title});
-                    long oldTimeout = (Long) lib.runKeyword("Set Jemmy Timeout", new Object[]{"ComponentOperator.WaitComponentTimeout", "1"});
+                    long oldTimeout = (Long) lib.runKeyword("Set Jemmy Timeout",
+                            new Object[]{"ComponentOperator.WaitComponentTimeout", "100ms"});
                     checkCheckboxes();
                     clickAcceptButton();
-                    lib.runKeyword("Set Jemmy Timeout", new Object[]{"ComponentOperator.WaitComponentTimeout", oldTimeout});
+                    lib.runKeyword("Set Jemmy Timeout",
+                            new Object[]{"ComponentOperator.WaitComponentTimeout", oldTimeout});
 
-                    System.err.println(String.format("Security Warning Dialog '%s' has been accepted", dialog.getTitle()));
+                    System.err.println(String.format("Security Warning Dialog '%s' has been accepted",
+                            dialog.getTitle()));
                     //robotConnection.send("DIALOG:" + dialog.getTitle());
                     this.done = true;
                 }
