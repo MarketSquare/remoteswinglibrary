@@ -259,6 +259,7 @@ class RemoteSwingLibrary(object):
             global REMOTE_AGENTS_LIST
             REMOTE_AGENTS_LIST = AgentList()
             RemoteSwingLibrary.PORT = None
+            RemoteSwingLibrary.TIMEOUT = 60
         self.ROBOT_NAMESPACE_BRIDGE.set_args(port, aphost, apport, debug, close_security_dialogs)
         if RemoteSwingLibrary.PORT is None:
             RemoteSwingLibrary.PORT = self._start_port_server(0 if port == 'TEST' else port or 0)
@@ -413,8 +414,8 @@ class RemoteSwingLibrary(object):
         self._application_started(alias, timeout, name_contains, accept_old=True)
 
     def _application_started(self, alias, timeout=60, name_contains=None, accept_old=True):
-        self.TIMEOUT = timestr_to_secs(timeout)
-        if (RemoteSwingLibrary.APPORT):
+        RemoteSwingLibrary.TIMEOUT = timestr_to_secs(timeout)
+        if RemoteSwingLibrary.APPORT:
             url = '%s:%s'%(RemoteSwingLibrary.APHOST, RemoteSwingLibrary.APPORT)
         else:
             url = self._get_agent_address(name_contains, accept_old)
@@ -436,7 +437,7 @@ class RemoteSwingLibrary(object):
         while True:
             if not REMOTE_AGENTS_LIST.get(accept_old):
                 REMOTE_AGENTS_LIST.agent_received.clear()
-            REMOTE_AGENTS_LIST.agent_received.wait(timeout=self.TIMEOUT)
+            REMOTE_AGENTS_LIST.agent_received.wait(timeout=RemoteSwingLibrary.TIMEOUT)
             if not REMOTE_AGENTS_LIST.agent_received.isSet():
                 raise RemoteSwingLibraryTimeoutError('Agent port not received before timeout')
             for address, name, age in reversed(REMOTE_AGENTS_LIST.get(accept_old)):
