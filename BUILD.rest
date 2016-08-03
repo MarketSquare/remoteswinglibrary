@@ -32,6 +32,7 @@ Releasing
 - create tag ``git tag -a x.x.x``
 - push ``git push`` and ``git push --tags``
 - create a new release and upload the jar file and html documentation to https://github.com/robotframework/remoteswinglibrary/releases
+- upload to Maven Repository (see https://github.com/robotframework/SwingLibrary/blob/master/BUILD.rest for detailed instructions)
 
 
 
