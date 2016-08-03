@@ -136,6 +136,7 @@ class FindAppContextWithWindow implements Runnable {
             this.dialog = dialog;
             this.ctx = ctx;
             this.robotConnection = robotConnection;
+            this.lib = SwingLibrary.instance == null ? new SwingLibrary() : SwingLibrary.instance;
         }
 
         public void run() {

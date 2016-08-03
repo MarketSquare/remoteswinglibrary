@@ -38,7 +38,8 @@ public class ServerThread implements Runnable {
     public void run()  {
         try {
             RemoteServer server = new DaemonRemoteServer();
-            server.putLibrary("/RPC2", new SwingLibrary());
+            SwingLibrary swingLibrary = SwingLibrary.instance == null ? new SwingLibrary() : SwingLibrary.instance;
+            server.putLibrary("/RPC2", swingLibrary);
             server.putLibrary("/services", new ServicesLibrary());
             server.setPort(apport);
             server.setAllowStop(true);
