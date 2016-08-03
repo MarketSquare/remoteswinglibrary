@@ -1,18 +1,16 @@
 *** Settings ***
-
-Library    RemoteSwingLibrary          debug=True     close_security_dialogs=True
+Library    RemoteSwingLibrary          debug=True
 Library    OperatingSystem
-Library    Process
 Suite setup    Set Environment Variable      CLASSPATH     target/test-classes
 
 *** Test Cases ***
 Close Security Dialogs
-     Start Application  App  java org.robotframework.remoteswinglibrary.SecurityDialogsApp  timeout=30 seconds
+     Start Application  App  java org.robotframework.remoteswinglibrary.SecurityDialogsApp  30 seconds  \  True
      Select Main Window
      Close Window  Test
 
 Close Security Dialogs Again
-     Start Application  App  java org.robotframework.remoteswinglibrary.SecurityDialogsApp  timeout=30 seconds
+     Start Application  App  java org.robotframework.remoteswinglibrary.SecurityDialogsApp  30 seconds  \  True
      Select Main Window
      Close Window  Test
 

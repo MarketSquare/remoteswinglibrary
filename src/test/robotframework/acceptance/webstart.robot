@@ -1,5 +1,5 @@
- *** Settings ***
-Library    RemoteSwingLibrary        debug=True   close_security_dialogs=True
+*** Settings ***
+Library    RemoteSwingLibrary        debug=True
 Library    FileServer
 Suite Setup     FileServer.Start
 Suite Teardown    FileServer.Stop
@@ -12,7 +12,7 @@ ${WEBSTART DIR}=    ${CURDIR}/webstart
 *** Test Cases ***
 Webstart Test
     [timeout]            5 min
-    Start Application    test-app    javaws ${WEBSTART DIR}/test-app/test-application.jnlp    120
+    Start Application    test-app    javaws ${WEBSTART DIR}/test-app/test-application.jnlp    120    \  True
     Set jemmy timeouts     60
     Select Main Window
     List components in context
