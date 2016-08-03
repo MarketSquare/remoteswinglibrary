@@ -64,9 +64,11 @@ class AgentList(object):
             self.agent_received.set()
             self._remote_agents.append((address, name, self.NEW))
 
-    def remove(self, address, name, age):
+    def remove(self, address):
         with self._lock:
-            self._remote_agents.remove((address, name, age))
+            for t in self._remote_agents[:]:
+                if t[0] == address:
+                    self._remote_agents.remove(t)
 
     def get(self, accept_old):
         with self._lock:
@@ -137,8 +139,8 @@ class RobotLibraryImporter(object):
 
     args = ()
 
-    def set_args(self, port=None, aphost='127.0.0.1', apport=None, debug=False, close_security_dialogs=False, __reload=True):
-        self.args = (port, aphost, apport, debug, close_security_dialogs, __reload)
+    def set_args(self, port=None, debug=False):
+        self.args = (port, debug)
 
     def re_import_remoteswinglibrary(self):
         if EXECUTION_CONTEXTS.current is None:
@@ -219,55 +221,58 @@ class RemoteSwingLibrary(object):
     ROBOT_LIBRARY_SCOPE = 'GLOBAL'
     KEYWORDS = ['system_exit', 'start_application', 'application_started', 'switch_to_application',
                 'ensure_application_should_close', 'log_java_system_properties', 'set_java_tool_options',
-                'connect_to_application']
+                'reinitiate']
     REMOTES = {}
     CURRENT = None
     PROCESS = Process()
     ROBOT_NAMESPACE_BRIDGE = RobotLibraryImporter()
     TIMEOUT = 60
     PORT = None
-    APHOST = None
-    APPORT = None
+    DEBUG = None
     AGENT_PATH = os.path.abspath(os.path.dirname(__file__))
     _output_dir = ''
 
-    def __init__(self, port=None, aphost='127.0.0.1', apport=None, debug=False,
-                 close_security_dialogs=False, __reload=False):
+    def __init__(self, port=None, debug=False):
         """
         *port*: optional port for the server receiving connections from remote agents
 
-        *apport*: optional port for server receiving connections of remote agent.
-        Should be used if you want to reconnect to same application between robot runs.
-
-        *aphost*: opptional network address of application we want to connect into
-
         *debug*: optional flag that will start agent in mode with more logging for troubleshooting (set to TRUE to enable)
 
-        *close_security_dialogs*: optional flag for automatic security dialogs closing (set to TRUE to enable)
-
-        NOTE! with special value 'TEST' starts a test application for documentation generation
+        NOTE! with special *port* value 'TEST' starts a test application for documentation generation
         purposes `python -m robot.libdoc RemoteSwingLibrary::TEST RemoteSwingLibrary.html`
 
         NOTE! RemoteSwingLibrary is a so called Global Scope library. This means when it is imported once it will be
-        available until end of robot run. If Robot encounters another import of RemoteSwingLibrary with different
-        import parameters the library will be reloaded and new options will be in use. You should be careful if you
-        import RemoteSwingLibrary with different options in multiple test suites and resources.
+        available until end of robot run. Parameters from imports in following suites will be ignored.
+        If you need to change import options, please use *Reinit Library* keyword.
 
         """
-        if not __reload:
-            RemoteSwingLibrary.CURRENT = None
-            global REMOTE_AGENTS_LIST
-            REMOTE_AGENTS_LIST = AgentList()
-            RemoteSwingLibrary.PORT = None
-            RemoteSwingLibrary.TIMEOUT = 60
-        self.ROBOT_NAMESPACE_BRIDGE.set_args(port, aphost, apport, debug, close_security_dialogs)
+        self.ROBOT_NAMESPACE_BRIDGE.set_args(port, debug)
+        if RemoteSwingLibrary.DEBUG is None:
+            RemoteSwingLibrary.DEBUG = bool(debug)
         if RemoteSwingLibrary.PORT is None:
             RemoteSwingLibrary.PORT = self._start_port_server(0 if port == 'TEST' else port or 0)
-        RemoteSwingLibrary.APHOST = aphost
-        RemoteSwingLibrary.APPORT = apport
-        self._create_env(bool(debug), bool(close_security_dialogs))
+        try:
+            BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPATH}', self._escape_path(RemoteSwingLibrary.AGENT_PATH))
+            BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPORT}', RemoteSwingLibrary.PORT)
+            self._output_dir = BuiltIn().get_variable_value('${OUTPUTDIR}')
+        except RobotNotRunningError:
+            pass
         if port == 'TEST':
             self.start_application('docgenerator', 'java -jar %s' % RemoteSwingLibrary.AGENT_PATH, timeout=4.0)
+
+    def reinitiate(self, port=None, debug=False):
+        """
+        Restarts RemoteSwingLibrary with new import parameters.
+        """
+        RemoteSwingLibrary.CURRENT = None
+        global REMOTE_AGENTS_LIST
+        REMOTE_AGENTS_LIST = AgentList()
+        RemoteSwingLibrary.PORT = None
+        RemoteSwingLibrary.DEBUG = None
+        RemoteSwingLibrary.TIMEOUT = 60
+        if port == "None":
+            port = None
+        self.__init__(port, debug)
 
     @property
     def current(self):
@@ -287,34 +292,27 @@ class RemoteSwingLibrary(object):
         t.start()
         return server.server_address[1]
 
-    def _create_env(self, debug, close_security_dialogs):
+    def _create_env(self, close_security_dialogs, remote_port):
         agent_command = '-javaagent:"%s"=127.0.0.1:%s' % (RemoteSwingLibrary.AGENT_PATH, RemoteSwingLibrary.PORT)
-        if RemoteSwingLibrary.APPORT:
-            agent_command += ':APPORT=%s' % RemoteSwingLibrary.APPORT
-        if debug:
+        if remote_port:
+            agent_command += ':APPORT=%s' % remote_port
+        if RemoteSwingLibrary.DEBUG:
             agent_command += ':DEBUG'
         if close_security_dialogs:
             agent_command += ':CLOSE_SECURITY_DIALOGS'
         self._agent_command = agent_command
-        try:
-            BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPATH}', self._escape_path(RemoteSwingLibrary.AGENT_PATH))
-            BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPORT}', RemoteSwingLibrary.PORT)
-            self._output_dir = BuiltIn().get_variable_value('${OUTPUTDIR}')
-        except RobotNotRunningError:
-            pass
         logger.info(agent_command)
-
 
     def _escape_path(self, text):
         return text.replace("\\","\\\\")
 
     @contextmanager
-    def _agent_java_tool_options(self):
+    def _agent_java_tool_options(self, close_security_dialogs, remote_port):
         old_tool_options = os.environ.get('JAVA_TOOL_OPTIONS', '')
         old_options = os.environ.get('_JAVA_OPTIONS', '')
         logger.debug("Picked old JAVA_TOOL_OPTIONS='%s'" % old_tool_options)
         logger.debug("Picked old _JAVA_OPTIONS='%s'" % old_options)
-        self.set_java_tool_options()
+        self.set_java_tool_options(close_security_dialogs, remote_port)
         try:
             yield
         finally:
@@ -323,7 +321,7 @@ class RemoteSwingLibrary(object):
             logger.debug("Returned old JAVA_TOOL_OPTIONS='%s'" % old_tool_options)
             logger.debug("Returned old _JAVA_OPTIONS='%s'" % old_options)
 
-    def set_java_tool_options(self):
+    def set_java_tool_options(self, close_security_dialogs=True, remote_port=None):
         """Sets the JAVA_TOOL_OPTIONS to include RemoteSwingLibrary Agent and
         the _JAVA_OPTIONS to set a temporary policy granting all permissions.
 
@@ -336,6 +334,8 @@ class RemoteSwingLibrary(object):
         Java policy file which grants all permissions. This file is set as
         policy for each java command call.
         """
+        close_security_dialogs=bool(close_security_dialogs)
+        self._create_env(close_security_dialogs, remote_port)
         os.environ['JAVA_TOOL_OPTIONS'] = self._agent_command
         logger.debug("Set JAVA_TOOL_OPTIONS='%s'" % self._agent_command)
         with tempfile.NamedTemporaryFile(prefix='grant_all_', suffix='.policy', delete=False) as t:
@@ -350,7 +350,8 @@ class RemoteSwingLibrary(object):
         logger.debug("Set _JAVA_OPTIONS='%s'" % java_policy)
 
 
-    def start_application(self, alias, command, timeout=60, name_contains=None):
+    def start_application(self, alias, command, timeout=60, name_contains=None, close_security_dialogs=False,
+                          remote_port=None):
         """Starts the process in the `command` parameter  on the host operating system.
         The given alias is stored to identify the started application in RemoteSwingLibrary.
 
@@ -360,17 +361,18 @@ class RemoteSwingLibrary(object):
         To see the name of the connecting java agents run tests with --loglevel DEBUG.
 
         """
+        close_security_dialogs=bool(close_security_dialogs)
         stdout = "remote_stdout_" + str(uuid.uuid4()) + '.txt'
         stderr = "remote_stderr_" + str(uuid.uuid4()) + '.txt'
         logger.info('<a href="%s">Link to stdout</a>' % stdout, html=True)
         logger.info('<a href="%s">Link to stderr</a>' % stderr, html=True)
         REMOTE_AGENTS_LIST.set_received_to_old()
-        with self._agent_java_tool_options():
+        with self._agent_java_tool_options(close_security_dialogs, remote_port):
             self.PROCESS.start_process(command, alias=alias, shell=True,
                                        stdout=self._output(stdout),
                                        stderr=self._output(stderr))
         try:
-            self._application_started(alias, timeout=timeout, name_contains=name_contains, accept_old=False)
+            self._application_started(alias, timeout, name_contains, remote_port, accept_old=False)
         except TimeoutError:
             raise
         except Exception:
@@ -384,39 +386,22 @@ class RemoteSwingLibrary(object):
                 logger.info("Process is running, but application startup failed")
             raise
 
-    def connect_to_application(self, alias, timeout=60, name_contains=None):
-        """Connects to application that was started in earlier RobotFramework run.
-        *apport* import option needs to be set to use this keyword.
-        Application that we want to connect into needs to be started by Start Application keyword when using same *apport* value.
-        """
-        try:
-            self._application_started(alias, timeout=timeout, name_contains=name_contains, accept_old=True)
-        except TimeoutError:
-            raise
-        except Exception:
-            logger.info("Failed to connect to application: %s" % traceback.format_exc())
-            result = self.PROCESS.wait_for_process(timeout=0.01)
-            if result:
-                logger.info('STDOUT: %s' % result.stdout)
-                logger.info('STDERR: %s' % result.stderr)
-            else:
-                logger.info("Process is running, but application startup failed")
-            raise
-
     def _output(self, filename):
         return os.path.join(self._output_dir, filename)
 
-    def application_started(self, alias, timeout=60, name_contains=None):
+    def application_started(self, alias, timeout=60, name_contains=None, remote_port=None, remote_host="127.0.0.1"):
         """Detects new RemoteSwingLibrary Java-agents in applications that are started without
         using the Start Application -keyword. The given alias is stored to identify the
         started application in RemoteSwingLibrary.
         Subsequent keywords will be passed on to this application."""
-        self._application_started(alias, timeout, name_contains, accept_old=True)
+        self._application_started(alias, timeout, name_contains, remote_port, remote_host)
 
-    def _application_started(self, alias, timeout=60, name_contains=None, accept_old=True):
+    def _application_started(self, alias, timeout, name_contains,
+                             remote_port, remote_host="127.0.0.1", accept_old=True):
         RemoteSwingLibrary.TIMEOUT = timestr_to_secs(timeout)
-        if RemoteSwingLibrary.APPORT:
-            url = '%s:%s'%(RemoteSwingLibrary.APHOST, RemoteSwingLibrary.APPORT)
+        if remote_port:
+            url = '%s:%s'%(remote_host, remote_port)
+            REMOTE_AGENTS_LIST.remove(url)
         else:
             url = self._get_agent_address(name_contains, accept_old)
         logger.info('connecting to started application at %s' % url)
@@ -442,7 +427,7 @@ class RemoteSwingLibrary(object):
                 raise RemoteSwingLibraryTimeoutError('Agent port not received before timeout')
             for address, name, age in reversed(REMOTE_AGENTS_LIST.get(accept_old)):
                 if name_pattern is None or name_pattern in name:
-                    REMOTE_AGENTS_LIST.remove(address, name, age)
+                    REMOTE_AGENTS_LIST.remove(address)
                     return address
             time.sleep(0.1)
 

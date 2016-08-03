@@ -4,6 +4,7 @@ Library    OperatingSystem
 Suite setup    Set Environment Variable      CLASSPATH     target/test-classes
 
 *** Test Cases ***
-Connecting to existing application on selected port and close it
-     Application Started  myapp2  5 seconds  \  31337
-     System Exit
+Reinitiate
+        Reinitiate  port=11777  debug=True
+        Should Be Equal As Integers  ${REMOTESWINGLIBRARYPORT}  11777
+        Reinitiate  debug=true

@@ -1,6 +1,5 @@
 *** Settings ***
-
-Library    RemoteSwingLibrary          debug=True     close_security_dialogs=True
+Library    RemoteSwingLibrary          debug=True
 Library    OperatingSystem
 Library    Process
 Suite setup    Set Environment Variable      CLASSPATH     target/test-classes
