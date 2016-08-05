@@ -27,8 +27,8 @@ Releasing
 - update library version to x.x.x in pom.xml
 - run tests ``mvn clean verify``
 - ``git commit -m "version to x.x.x" pom.xml``
-- generate the html documentation: ``PYTHONPATH=target/remoteswinglibrary-x.x.x.jar python -m robot.libdoc RemoteSwingLibrary::TEST RemoteSwingLibrary-x.x.x.html``
-- generate the xml documentation: ``PYTHONPATH=target/remoteswinglibrary-x.x.x.jar python -m robot.libdoc RemoteSwingLibrary::TEST RemoteSwingLibrary-x.x.x.xml``
+- generate the html documentation: ``PYTHONPATH=target/remoteswinglibrary-x.x.x.jar python -m robot.libdoc RemoteSwingLibrary RemoteSwingLibrary-x.x.x.html``
+- generate the xml documentation: ``PYTHONPATH=target/remoteswinglibrary-x.x.x.jar python -m robot.libdoc RemoteSwingLibrary RemoteSwingLibrary-x.x.x.xml``
 - create tag ``git tag -a x.x.x``
 - push ``git push`` and ``git push --tags``
 - create a new release and upload the jar file and html documentation to https://github.com/robotframework/remoteswinglibrary/releases
