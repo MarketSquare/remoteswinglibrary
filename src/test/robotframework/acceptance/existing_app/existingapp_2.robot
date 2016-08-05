@@ -5,5 +5,7 @@ Suite setup    Set Environment Variable      CLASSPATH     target/test-classes
 
 *** Test Cases ***
 Connecting to existing application on selected port and close it
-     Application Started  myapp2  5 seconds  \  31337
+    [Timeout]    15 seconds
+     Application Started  myapp2  5 seconds  remote_port=31337
+     Select Main Window
      System Exit

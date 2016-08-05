@@ -6,7 +6,7 @@ Suite setup    Set Environment Variable      CLASSPATH     target/test-classes
 
 *** Test Cases ***
 None Existing Application start fails before timeout
-     [Timeout]    5 seconds
+     [Timeout]    3 seconds
      Run Keyword And Expect Error    *    Start Application    no-one    this command fails immediatly   timeout=1
 
 Starting and stopping application with main window
