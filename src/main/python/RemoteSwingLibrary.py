@@ -285,10 +285,12 @@ class RemoteSwingLibrary(object):
         """Starts the process in the `command` parameter  on the host operating system.
         The given alias is stored to identify the started application in RemoteSwingLibrary.
 
-        timeout (default 60) is timeout in seconds.
-        name_contains is a text that must be part of the name of the java process that we are connecting to.
-        name_contains helps in situations where multiple java-processes are started.
+        *timeout* (default 60) is timeout in seconds.
+        *name_contains* is a text that must be part of the name of the java process that we are connecting to.
+        *name_contains* helps in situations where multiple java-processes are started.
         To see the name of the connecting java agents run tests with --loglevel DEBUG.
+        *remote_port* forces RSL agent to run on specific port, this is useful if you want to
+        connect to this application later from another robot run.
 
         """
         close_security_dialogs = _tobool(close_security_dialogs)
@@ -321,9 +323,11 @@ class RemoteSwingLibrary(object):
 
     def application_started(self, alias, timeout=60, name_contains="", remote_port=0, remote_host="127.0.0.1"):
         """Detects new RemoteSwingLibrary Java-agents in applications that are started without
-        using the Start Application -keyword. The given alias is stored to identify the
-        started application in RemoteSwingLibrary.
-        Subsequent keywords will be passed on to this application."""
+        using the Start Application -keyword. The given alias is stored
+        to identify the started application in RemoteSwingLibrary.
+        Subsequent keywords will be passed on to this application. Agents in application
+        started in previous robot runs can't be detected automatically, so you have to use *remote_port* parameter.
+        """
         self._application_started(alias, timeout, name_contains, remote_port, remote_host)
 
     def _wait_for_api(self, url):
