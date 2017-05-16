@@ -46,7 +46,6 @@ class FindAppContextWithWindow implements Runnable {
     public void run()  {
         try {
             robotConnection = new RobotConnection(host, port);
-            //robotConnection.connect();
             AppContext appContext = getAppContextWithWindow();
             sun.awt.SunToolkit.invokeLaterOnAppContext(appContext, new ServerThread(robotConnection, apport, debug));
         } catch (Exception e) {
@@ -162,7 +161,9 @@ class FindAppContextWithWindow implements Runnable {
 
                     System.err.println(String.format("Security Warning Dialog '%s' has been accepted",
                             dialog.getTitle()));
-                    //robotConnection.send("DIALOG:" + dialog.getTitle());
+                    robotConnection.connect();
+                    robotConnection.send("DIALOG:" + title);
+                    robotConnection.close();
                     this.done = true;
                 }
                 else
