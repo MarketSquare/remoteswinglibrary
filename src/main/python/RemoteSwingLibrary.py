@@ -122,11 +122,11 @@ class RemoteSwingLibrary(object):
     - [#Application Started|Application Started]
     - [#Ensure Application Should Close|Ensure Application Should Close]
     - [#Log Java System Properties|Log Java System Properties]
+    - [#Reinitiate|Reinitiate]
     - [#Set Java Tool Options|Set Java Tool Options]
     - [#Start Application|Start Application]
     - [#System Exit|System Exit]
     - [#Switch To Application|Switch To Application]
-    - [#Connect To Application|Connect To Application]
 
     RemoteSwingLibrary also introduces two global variables that can be used during testing:
     - ${REMOTESWINGLIBRARYPATH} the location of the remoteswinglibrary jar file.
