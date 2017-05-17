@@ -125,8 +125,8 @@ class RemoteSwingLibrary(object):
     - [#Reinitiate|Reinitiate]
     - [#Set Java Tool Options|Set Java Tool Options]
     - [#Start Application|Start Application]
-    - [#System Exit|System Exit]
     - [#Switch To Application|Switch To Application]
+    - [#System Exit|System Exit]
 
     RemoteSwingLibrary also introduces two global variables that can be used during testing:
     - ${REMOTESWINGLIBRARYPATH} the location of the remoteswinglibrary jar file.
