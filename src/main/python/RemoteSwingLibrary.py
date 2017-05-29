@@ -448,6 +448,11 @@ class RemoteSwingLibrary(object):
         """
         with self._run_and_ignore_connection_lost():
             self._run_from_services('systemExit', exit_code)
+		# try closing the attached process (if started with start_application) to close any open file handles
+        try:
+            self.PROCESS.wait_for_process(handle=RemoteSwingLibrary.CURRENT, timeout=0.01)
+        except:
+            return
 
     def switch_to_application(self, alias):
         """Switches between applications that are known to RemoteSwingLibrary.
