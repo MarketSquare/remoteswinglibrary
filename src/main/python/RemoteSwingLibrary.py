@@ -20,6 +20,8 @@ import threading
 import time
 import traceback
 import swinglibrary
+import shutil
+import datetime
 
 IS_PYTHON3 = sys.version_info[0] >= 3
 if IS_PYTHON3:
@@ -189,6 +191,12 @@ class RemoteSwingLibrary(object):
             BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPATH}', self._escape_path(RemoteSwingLibrary.AGENT_PATH))
             BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPORT}', RemoteSwingLibrary.PORT)
             self._output_dir = BuiltIn().get_variable_value('${OUTPUTDIR}')
+
+            if os.path.exists(self._output("remote_stderr")):
+                shutil.rmtree(self._output("remote_stderr"))
+            if os.path.exists(self._output("remote_stdout")):
+                shutil.rmtree(self._output("remote_stdout"))
+
         except RobotNotRunningError:
             pass
 
@@ -202,6 +210,7 @@ class RemoteSwingLibrary(object):
         RemoteSwingLibrary.PORT = None
         RemoteSwingLibrary.DEBUG = None
         RemoteSwingLibrary.TIMEOUT = 60
+
         self.__init__(port, debug)
 
     @property
@@ -268,14 +277,14 @@ class RemoteSwingLibrary(object):
         self._create_env(close_security_dialogs, remote_port)
         os.environ['JAVA_TOOL_OPTIONS'] = self._agent_command
         logger.debug("Set JAVA_TOOL_OPTIONS='%s'" % self._agent_command)
-        with tempfile.NamedTemporaryFile(prefix='grant_all_', suffix='.policy', delete=False) as t:
+        with tempfile.NamedTemporaryFile(prefix='grant_all_', suffix='.policy', delete=True) as t:
             text = b"""
                 grant {
                     permission java.security.AllPermission;
                 };
                 """
-            t.write(text)
-        java_policy = '-Djava.security.policy="%s"' % t.name
+            t.write(tecuxt)
+        java_policy = '-Djava.serity.policy="%s"' % t.name
         os.environ['_JAVA_OPTIONS'] = java_policy
         logger.debug("Set _JAVA_OPTIONS='%s'" % java_policy)
 
@@ -294,8 +303,17 @@ class RemoteSwingLibrary(object):
 
         """
         close_security_dialogs = _tobool(close_security_dialogs)
-        stdout = "remote_stdout_" + str(uuid.uuid4()) + '.txt'
-        stderr = "remote_stderr_" + str(uuid.uuid4()) + '.txt'
+        stdout = "remote_stdout" + "/" + "remote_stdout_" + str(datetime.datetime.now()) + '.txt'
+        stderr = "remote_stderr" + "/" + "remote_stderr_" + str(datetime.datetime.now()) + '.txt'
+
+        stderr_dir=self._output("remote_stderr")
+        stdout_dir=self._output("remote_stdout")
+
+        if not os.path.exists(stderr_dir):
+            os.makedirs(stderr_dir)
+        if not os.path.exists(stdout_dir):
+            os.makedirs(stdout_dir)
+
         logger.info('<a href="%s">Link to stdout</a>' % stdout, html=True)
         logger.info('<a href="%s">Link to stderr</a>' % stderr, html=True)
         REMOTE_AGENTS_LIST.set_received_to_old()
@@ -409,9 +427,13 @@ class RemoteSwingLibrary(object):
 
     def _take_screenshot(self):
         logdir = self._get_log_dir()
-        filepath = os.path.join(logdir, 'remoteswinglibrary-screenshot%s.png' % int(time.time()*1000))
+        screenshotdir=logdir+"/"+"remote_screenshots";
+        if not os.path.exists(screenshotdir):
+            os.makedirs(screenshotdir)
+
+        filepath = os.path.join(screenshotdir, 'remoteswinglibrary-screenshot%s.png' % int(time.time()*1000))
         self._run_from_services('takeScreenshot', filepath)
-        logger.info('<img src="%s"></img>' % get_link_path(filepath, logdir), html=True)
+        logger.info('<img src="%s"></img>' % get_link_path(filepath, screenshotdir), html=True)
 
     def _get_log_dir(self):
         variables = BuiltIn().get_variables()
