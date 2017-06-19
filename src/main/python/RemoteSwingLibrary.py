@@ -283,8 +283,8 @@ class RemoteSwingLibrary(object):
                     permission java.security.AllPermission;
                 };
                 """
-            t.write(tecuxt)
-        java_policy = '-Djava.serity.policy="%s"' % t.name
+            t.write(text)
+        java_policy = '-Djava.security.policy="%s"' % t.name
         os.environ['_JAVA_OPTIONS'] = java_policy
         logger.debug("Set _JAVA_OPTIONS='%s'" % java_policy)
 
