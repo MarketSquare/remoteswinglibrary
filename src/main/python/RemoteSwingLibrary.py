@@ -22,6 +22,7 @@ import traceback
 import swinglibrary
 import shutil
 import datetime
+import re
 
 IS_PYTHON3 = sys.version_info[0] >= 3
 if IS_PYTHON3:
@@ -183,6 +184,15 @@ class RemoteSwingLibrary(object):
         If you need to change import options between suites, please use *Reinitiate* keyword.
 
         """
+
+        self.initiate(port, debug)
+
+        if os.path.exists(self._output("remote-stderr")):
+            shutil.rmtree(self._output("remote-stderr"))
+        if os.path.exists(self._output("remote-stdout")):
+            shutil.rmtree(self._output("remote-stdout"))
+
+    def initiate(self, port=0, debug=False):
         if RemoteSwingLibrary.DEBUG is None:
             RemoteSwingLibrary.DEBUG = _tobool(debug)
         if RemoteSwingLibrary.PORT is None:
@@ -191,12 +201,6 @@ class RemoteSwingLibrary(object):
             BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPATH}', self._escape_path(RemoteSwingLibrary.AGENT_PATH))
             BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPORT}', RemoteSwingLibrary.PORT)
             self._output_dir = BuiltIn().get_variable_value('${OUTPUTDIR}')
-
-            if os.path.exists(self._output("remote_stderr")):
-                shutil.rmtree(self._output("remote_stderr"))
-            if os.path.exists(self._output("remote_stdout")):
-                shutil.rmtree(self._output("remote_stdout"))
-
         except RobotNotRunningError:
             pass
 
@@ -211,7 +215,7 @@ class RemoteSwingLibrary(object):
         RemoteSwingLibrary.DEBUG = None
         RemoteSwingLibrary.TIMEOUT = 60
 
-        self.__init__(port, debug)
+        self.initiate(port, debug)
 
     @property
     def current(self):
@@ -303,11 +307,11 @@ class RemoteSwingLibrary(object):
 
         """
         close_security_dialogs = _tobool(close_security_dialogs)
-        stdout = "remote_stdout" + "/" + "remote_stdout_" + str(datetime.datetime.now()) + '.txt'
-        stderr = "remote_stderr" + "/" + "remote_stderr_" + str(datetime.datetime.now()) + '.txt'
+        stdout = "remote-stdout" + "/" + "remote-stdout-" + re.sub('[:. ]','-',str(datetime.datetime.now()))+ '.txt'
+        stderr = "remote-stderr" + "/" + "remote-stderr-" + re.sub('[:. ]','-',str(datetime.datetime.now()))+ '.txt'
 
-        stderr_dir=self._output("remote_stderr")
-        stdout_dir=self._output("remote_stdout")
+        stderr_dir=self._output("remote-stderr")
+        stdout_dir=self._output("remote-stdout")
 
         if not os.path.exists(stderr_dir):
             os.makedirs(stderr_dir)
@@ -427,13 +431,13 @@ class RemoteSwingLibrary(object):
 
     def _take_screenshot(self):
         logdir = self._get_log_dir()
-        screenshotdir=logdir+"/"+"remote_screenshots";
+        screenshotdir=logdir+"/"+"remote-screenshots"
         if not os.path.exists(screenshotdir):
             os.makedirs(screenshotdir)
 
-        filepath = os.path.join(screenshotdir, 'remoteswinglibrary-screenshot%s.png' % int(time.time()*1000))
+        filepath = os.path.join(screenshotdir, 'remote-screenshot%s.png' % re.sub('[:. ]', '-', str(datetime.datetime.now())))
         self._run_from_services('takeScreenshot', filepath)
-        logger.info('<img src="%s"></img>' % get_link_path(filepath, screenshotdir), html=True)
+        logger.info('<img src="%s"></img>' % get_link_path(filepath, logdir), html=True)
 
     def _get_log_dir(self):
         variables = BuiltIn().get_variables()
