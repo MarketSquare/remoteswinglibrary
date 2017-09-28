@@ -14,6 +14,7 @@ public class SecurityDialogsApp extends JFrame {
         SecurityWarningRun();
         SecurityWarningInstall();
         SecurityWarningWithCheckBox();
+        SecurityWarningWithCheckBoxGerman();
 
         setVisible(true);
     }
@@ -64,6 +65,23 @@ public class SecurityDialogsApp extends JFrame {
         int n = JOptionPane.showOptionDialog(this,
                 msgContent,
                 "Security Warning",
+                JOptionPane.YES_NO_CANCEL_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                options,
+                options[0]);
+    }
+
+    private void SecurityWarningWithCheckBoxGerman(){
+        JCheckBox rememberChk = new JCheckBox("Für Anwendungen dieses Anbieters und aus diesem Speicherort nicht mehr anzeigen.");
+        JButton moreInfoButton = new JButton("Mehr Informationen");
+        Object[] options = {"Ausführen",
+                "Abbrechen"};
+
+        Object[] msgContent = {"msg", moreInfoButton, rememberChk};
+        int n = JOptionPane.showOptionDialog(this,
+                msgContent,
+                "Sicherheitsinformationen",
                 JOptionPane.YES_NO_CANCEL_OPTION,
                 JOptionPane.QUESTION_MESSAGE,
                 null,

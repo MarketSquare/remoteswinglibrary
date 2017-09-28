@@ -283,7 +283,7 @@ class RemoteSwingLibrary(object):
         self._create_env(close_security_dialogs, remote_port)
         os.environ['JAVA_TOOL_OPTIONS'] = self._agent_command
         logger.debug("Set JAVA_TOOL_OPTIONS='%s'" % self._agent_command)
-        with tempfile.NamedTemporaryFile(prefix='grant_all_', suffix='.policy', delete=True) as t:
+        with tempfile.NamedTemporaryFile(prefix='grant_all_', suffix='.policy', delete=False) as t:
             text = b"""
                 grant {
                     permission java.security.AllPermission;
