@@ -145,6 +145,7 @@ class FindAppContextWithWindow implements Runnable {
                 dialogTitles.add("Security Information");
                 dialogTitles.add("Install Java Extension");
                 dialogTitles.add("Sicherheitsinformationen");
+                dialogTitles.add("Sicherheitswarnung");
 
                 String title = dialog.getTitle();
                 System.err.println(String.format("Handling Dialog '%s'.",
@@ -197,7 +198,8 @@ class FindAppContextWithWindow implements Runnable {
             acceptButtonList.add("Run");
             acceptButtonList.add("Continue");
             acceptButtonList.add("Install");
-            acceptButtonList.add("Ausführen");
+            acceptButtonList.add("AusfÃ¼hren");
+            acceptButtonList.add("Weiter");
 
             for (String text: acceptButtonList) {
                 try {
