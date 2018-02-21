@@ -265,10 +265,10 @@ class RemoteSwingLibrary(object):
         policy for each java command call.
         """
         close_security_dialogs = _tobool(close_security_dialogs)
-        en_us_locale = "-Duser.language=en -Duser.country=US"
+        en_us_locale = "-Duser.language=en -Duser.country=US "
         self._create_env(close_security_dialogs, remote_port)
-        os.environ['JAVA_TOOL_OPTIONS'] = self._agent_command
-        logger.debug("Set JAVA_TOOL_OPTIONS='%s %s'" % (en_us_locale, self._agent_command))
+        os.environ['JAVA_TOOL_OPTIONS'] = en_us_locale + self._agent_command
+        logger.debug("Set JAVA_TOOL_OPTIONS='%s%s'" % (en_us_locale, self._agent_command))
         with tempfile.NamedTemporaryFile(prefix='grant_all_', suffix='.policy', delete=False) as t:
             text = b"""
                 grant {
