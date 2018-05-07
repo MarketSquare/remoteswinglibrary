@@ -35,7 +35,7 @@ from robot.libraries.BuiltIn import BuiltIn
 from robot.libraries.Process import Process
 from robot.libraries.Remote import Remote
 from robot.libraries.BuiltIn import BuiltIn, run_keyword_variant
-from robot.utils import timestr_to_secs, get_link_path
+from robot.utils import timestr_to_secs, get_link_path, is_truthy
 from robotbackgroundlogger import BackgroundLogger
 logger = BackgroundLogger()
 
@@ -169,6 +169,7 @@ class RemoteSwingLibrary(object):
     DEBUG = None
     AGENT_PATH = os.path.abspath(os.path.dirname(__file__))
     _output_dir = ''
+    JAVA9_OR_NEWER = False
 
     def __init__(self, port=0, debug=False):
         """
@@ -266,6 +267,8 @@ class RemoteSwingLibrary(object):
         """
         close_security_dialogs = _tobool(close_security_dialogs)
         self._create_env(close_security_dialogs, remote_port)
+        if self.JAVA9_OR_NEWER:
+            self._agent_command += ' --add-exports=java.desktop/sun.awt=ALL-UNNAMED'
         os.environ['JAVA_TOOL_OPTIONS'] = self._agent_command
         logger.debug("Set JAVA_TOOL_OPTIONS='%s'" % self._agent_command)
         with tempfile.NamedTemporaryFile(prefix='grant_all_', suffix='.policy', delete=False) as t:
@@ -281,7 +284,7 @@ class RemoteSwingLibrary(object):
 
 
     def start_application(self, alias, command, timeout=60, name_contains="", close_security_dialogs=False,
-                          remote_port=0):
+                          java9_or_newer=False, remote_port=0):
         """Starts the process in the `command` parameter  on the host operating system.
         The given alias is stored to identify the started application in RemoteSwingLibrary.
 
@@ -289,11 +292,14 @@ class RemoteSwingLibrary(object):
         *name_contains* is a text that must be part of the name of the java process that we are connecting to.
         *name_contains* helps in situations where multiple java-processes are started.
         To see the name of the connecting java agents run tests with --loglevel DEBUG.
+        *java9_or_newer* is needed for compatibility with newer Java versions due to access changes in Java
+        internal API.
         *remote_port* forces RSL agent to run on specific port, this is useful if you want to
         connect to this application later from another robot run.
 
         """
         close_security_dialogs = _tobool(close_security_dialogs)
+        self.JAVA9_OR_NEWER = is_truthy(java9_or_newer)
         stdout = "remote_stdout_" + str(uuid.uuid4()) + '.txt'
         stderr = "remote_stderr_" + str(uuid.uuid4()) + '.txt'
         logger.info('<a href="%s">Link to stdout</a>' % stdout, html=True)
