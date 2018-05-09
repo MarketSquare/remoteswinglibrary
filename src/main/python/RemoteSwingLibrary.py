@@ -188,7 +188,7 @@ class RemoteSwingLibrary(object):
         if self._get_sys_path('PYTHONPATH') is not None:
             if self._get_sys_path('CLASSPATH') is None:
                 os.environ['CLASSPATH'] = self._get_sys_path('PYTHONPATH')
-        p = subprocess.Popen(['javaw', 'org.robotframework.remoteswinglibrary.ReadJavaVersion'],
+        p = subprocess.Popen(['java', 'org.robotframework.remoteswinglibrary.ReadJavaVersion'],
                              stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         version, err = p.communicate()
         return version
