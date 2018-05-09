@@ -36,7 +36,7 @@ from robot.libraries.BuiltIn import BuiltIn
 from robot.libraries.Process import Process
 from robot.libraries.Remote import Remote
 from robot.libraries.BuiltIn import BuiltIn, run_keyword_variant
-from robot.utils import timestr_to_secs, get_link_path, is_truthy
+from robot.utils import timestr_to_secs, get_link_path
 from robotbackgroundlogger import BackgroundLogger
 logger = BackgroundLogger()
 
@@ -170,6 +170,7 @@ class RemoteSwingLibrary(object):
     DEBUG = None
     AGENT_PATH = os.path.abspath(os.path.dirname(__file__))
     _output_dir = ''
+    JAVA9_OR_NEWER = None
 
     @staticmethod
     def _get_sys_path(path_type):
@@ -180,11 +181,17 @@ class RemoteSwingLibrary(object):
         return None
 
     def _java9_or_newer(self):
+        version = self._read_java_version()
+        return float(version) >= 1.9
+
+    def _read_java_version(self):
         if self._get_sys_path('PYTHONPATH') is not None:
             if self._get_sys_path('CLASSPATH') is None:
                 os.environ['CLASSPATH'] = self._get_sys_path('PYTHONPATH')
-        version = subprocess.call(['java', 'org.robotframework.remoteswinglibrary.ReadJavaVersion'])
-        return float(version) >= 1.9
+        p = subprocess.Popen(['javaw', 'org.robotframework.remoteswinglibrary.ReadJavaVersion'],
+                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        version, err = p.communicate()
+        return version
 
     def __init__(self, port=0, debug=False):
         """
@@ -201,14 +208,14 @@ class RemoteSwingLibrary(object):
             RemoteSwingLibrary.DEBUG = _tobool(debug)
         if RemoteSwingLibrary.PORT is None:
             RemoteSwingLibrary.PORT = self._start_port_server(int(port))
+        if RemoteSwingLibrary.JAVA9_OR_NEWER is None:
+            RemoteSwingLibrary.JAVA9_OR_NEWER = _tobool(self._java9_or_newer())
         try:
             BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPATH}', self._escape_path(RemoteSwingLibrary.AGENT_PATH))
             BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPORT}', RemoteSwingLibrary.PORT)
             self._output_dir = BuiltIn().get_variable_value('${OUTPUTDIR}')
         except RobotNotRunningError:
             pass
-        self.JAVA9_OR_NEWER = self._java9_or_newer()
-
 
     def reinitiate(self, port=0, debug=False):
         """
@@ -284,7 +291,8 @@ class RemoteSwingLibrary(object):
         """
         close_security_dialogs = _tobool(close_security_dialogs)
         self._create_env(close_security_dialogs, remote_port)
-        if self.JAVA9_OR_NEWER:
+        logger.info("Java version > 9: " + str(RemoteSwingLibrary.JAVA9_OR_NEWER))
+        if RemoteSwingLibrary.JAVA9_OR_NEWER:
             self._agent_command += ' --add-exports=java.desktop/sun.awt=ALL-UNNAMED'
         os.environ['JAVA_TOOL_OPTIONS'] = self._agent_command
         logger.debug("Set JAVA_TOOL_OPTIONS='%s'" % self._agent_command)
