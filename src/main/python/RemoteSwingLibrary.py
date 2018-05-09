@@ -20,6 +20,7 @@ import threading
 import time
 import traceback
 import swinglibrary
+import subprocess
 
 IS_PYTHON3 = sys.version_info[0] >= 3
 if IS_PYTHON3:
@@ -169,7 +170,21 @@ class RemoteSwingLibrary(object):
     DEBUG = None
     AGENT_PATH = os.path.abspath(os.path.dirname(__file__))
     _output_dir = ''
-    JAVA9_OR_NEWER = False
+
+    @staticmethod
+    def _get_sys_path(path_type):
+        classpath = os.environ[path_type].split(os.pathsep)
+        for path in classpath:
+            if 'remoteswinglibrary' in path:
+                return path
+        return None
+
+    def _java9_or_newer(self):
+        if self._get_sys_path('PYTHONPATH') is not None:
+            if self._get_sys_path('CLASSPATH') is None:
+                os.environ['CLASSPATH'] = self._get_sys_path('PYTHONPATH')
+        version = subprocess.call(['java', 'org.robotframework.remoteswinglibrary.ReadJavaVersion'])
+        return float(version) >= 1.9
 
     def __init__(self, port=0, debug=False):
         """
@@ -192,6 +207,8 @@ class RemoteSwingLibrary(object):
             self._output_dir = BuiltIn().get_variable_value('${OUTPUTDIR}')
         except RobotNotRunningError:
             pass
+        self.JAVA9_OR_NEWER = self._java9_or_newer()
+
 
     def reinitiate(self, port=0, debug=False):
         """
@@ -284,7 +301,7 @@ class RemoteSwingLibrary(object):
 
 
     def start_application(self, alias, command, timeout=60, name_contains="", close_security_dialogs=False,
-                          java9_or_newer=False, remote_port=0):
+                          remote_port=0):
         """Starts the process in the `command` parameter  on the host operating system.
         The given alias is stored to identify the started application in RemoteSwingLibrary.
 
@@ -292,14 +309,11 @@ class RemoteSwingLibrary(object):
         *name_contains* is a text that must be part of the name of the java process that we are connecting to.
         *name_contains* helps in situations where multiple java-processes are started.
         To see the name of the connecting java agents run tests with --loglevel DEBUG.
-        *java9_or_newer* is needed for compatibility with newer Java versions due to access changes in Java
-        internal API.
         *remote_port* forces RSL agent to run on specific port, this is useful if you want to
         connect to this application later from another robot run.
 
         """
         close_security_dialogs = _tobool(close_security_dialogs)
-        self.JAVA9_OR_NEWER = is_truthy(java9_or_newer)
         stdout = "remote_stdout_" + str(uuid.uuid4()) + '.txt'
         stderr = "remote_stderr_" + str(uuid.uuid4()) + '.txt'
         logger.info('<a href="%s">Link to stdout</a>' % stdout, html=True)
