@@ -20,9 +20,10 @@ import org.robotframework.swing.SwingLibrary;
 import sun.awt.AppContext;
 
 import java.awt.*;
+import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.*;
-
+import org.robotframework.remoteswinglibrary.agent.ServicesLibrary;
 
 class FindAppContextWithWindow implements Runnable {
 
@@ -130,6 +131,7 @@ class FindAppContextWithWindow implements Runnable {
         public int attempts = 5;
         public boolean done = false;
         SwingLibrary lib;
+        ServicesLibrary servicesLib;
 
         public SecurityDialogAccepter(Dialog dialog, AppContext ctx, RobotConnection robotConnection) {
             this.dialog = dialog;
@@ -151,6 +153,8 @@ class FindAppContextWithWindow implements Runnable {
 
                 if (dialogTitles.contains(title)) {
                     lib = new SwingLibrary();
+                    servicesLib = new ServicesLibrary();
+                    String absolutePath = takeScreenshot();
                     lib.runKeyword("select_dialog", new Object[]{title});
                     long oldTimeout = (Long) lib.runKeyword("Set Jemmy Timeout",
                             new Object[]{"ComponentOperator.WaitComponentTimeout", "100ms"});
@@ -162,7 +166,7 @@ class FindAppContextWithWindow implements Runnable {
                     System.err.println(String.format("Security Warning Dialog '%s' has been accepted",
                             dialog.getTitle()));
                     robotConnection.connect();
-                    robotConnection.send("DIALOG:" + title);
+                    robotConnection.send("DIALOG:" + title + ":" + absolutePath);
                     robotConnection.close();
                     this.done = true;
                 }
@@ -205,6 +209,17 @@ class FindAppContextWithWindow implements Runnable {
                 catch (Throwable t) {
                 }
             }
+        }
+
+        private String takeScreenshot() {
+            long timestamp = new Date().getTime();
+            String path = String.format("security_dialog_%s.png", timestamp);
+            try {
+                servicesLib.takeScreenshot(path);
+            } catch (Throwable t) {
+                System.err.println("Taking screenshot failed.");
+            }
+            return new File(path).getAbsolutePath();
         }
     }
 }
