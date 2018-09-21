@@ -4,8 +4,6 @@ Library    OperatingSystem
 Suite setup    Set Environment Variable      CLASSPATH     target/test-classes
 Test Teardown  Remove Files  *.png
 
-*** Variables ***
-
 *** Test Cases ***
 Close Security Dialogs
     [Timeout]    60 seconds
