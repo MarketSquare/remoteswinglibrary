@@ -34,7 +34,6 @@ else:
 import uuid
 
 from robot.errors import HandlerExecutionFailed, TimeoutError
-from robot.libraries.BuiltIn import BuiltIn
 from robot.libraries.Process import Process
 from robot.libraries.Remote import Remote
 from robot.libraries.BuiltIn import BuiltIn, run_keyword_variant
@@ -98,8 +97,11 @@ class SimpleServer(SocketServer.StreamRequestHandler):
                          (name, address))
             REMOTE_AGENTS_LIST.append(address, name)
         elif fields[0] == 'DIALOG':
-            title = ':'.join(fields[1:])
+            title = fields[1]
+            path = ':'.join(fields[2:])
             logger.info('Security Warning "%s" was accepted automatically' % title)
+            logger.info('<a href="%s"><img src="%s" width="%s"></a>'
+                        % (path, get_link_path(path, RemoteSwingLibrary.get_log_dir()), 800), html=True)
         else:
             logger.debug('Unknown message "%s"' % fields[0])
 
@@ -441,7 +443,8 @@ class RemoteSwingLibrary(object):
         self._run_from_services('takeScreenshot', filepath)
         logger.info('<img src="%s"></img>' % get_link_path(filepath, logdir), html=True)
 
-    def _get_log_dir(self):
+    @staticmethod
+    def get_log_dir():
         variables = BuiltIn().get_variables()
         logfile = variables['${LOG FILE}']
         if logfile != 'NONE':
