@@ -20,6 +20,9 @@ import threading
 import time
 import traceback
 import swinglibrary
+import shutil
+import datetime
+import re
 
 IS_PYTHON3 = sys.version_info[0] >= 3
 if IS_PYTHON3:
@@ -36,6 +39,7 @@ from robot.libraries.Remote import Remote
 from robot.libraries.BuiltIn import BuiltIn, run_keyword_variant
 from robot.utils import timestr_to_secs, get_link_path
 from robotbackgroundlogger import BackgroundLogger
+
 logger = BackgroundLogger()
 
 try:
@@ -80,8 +84,8 @@ class AgentList(object):
 
 REMOTE_AGENTS_LIST = AgentList()
 
-class SimpleServer(SocketServer.StreamRequestHandler):
 
+class SimpleServer(SocketServer.StreamRequestHandler):
     def handle(self):
         data = self.rfile.readline()[:-1]
         fields = data.decode().split(':')
@@ -183,12 +187,22 @@ class RemoteSwingLibrary(object):
         If you need to change import options between suites, please use *Reinitiate* keyword.
 
         """
+
+        self._initiate(port, debug)
+
+        if os.path.exists(self._output("remote-stderr")):
+            shutil.rmtree(self._output("remote-stderr"))
+        if os.path.exists(self._output("remote-stdout")):
+            shutil.rmtree(self._output("remote-stdout"))
+
+    def _initiate(self, port=0, debug=False):
         if RemoteSwingLibrary.DEBUG is None:
             RemoteSwingLibrary.DEBUG = _tobool(debug)
         if RemoteSwingLibrary.PORT is None:
             RemoteSwingLibrary.PORT = self._start_port_server(int(port))
         try:
-            BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPATH}', self._escape_path(RemoteSwingLibrary.AGENT_PATH))
+            BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPATH}',
+                                          self._escape_path(RemoteSwingLibrary.AGENT_PATH))
             BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPORT}', RemoteSwingLibrary.PORT)
             self._output_dir = BuiltIn().get_variable_value('${OUTPUTDIR}')
         except RobotNotRunningError:
@@ -204,7 +218,8 @@ class RemoteSwingLibrary(object):
         RemoteSwingLibrary.PORT = None
         RemoteSwingLibrary.DEBUG = None
         RemoteSwingLibrary.TIMEOUT = 60
-        self.__init__(port, debug)
+
+        self._initiate(port, debug)
 
     @property
     def current(self):
@@ -216,7 +231,7 @@ class RemoteSwingLibrary(object):
         address = ('0.0.0.0', int(port))
         server = SocketServer.TCPServer(address, SimpleServer)
         server.allow_reuse_address = True
-        #t = threading.Thread(name="RemoteSwingLibrary registration server thread",
+        # t = threading.Thread(name="RemoteSwingLibrary registration server thread",
         #                     target=server.serve_forever)
         t = threading.Thread(name="RemoteSwingLibrary registration server thread",
                              target=server.serve_forever, args=(0.01,))
@@ -236,7 +251,7 @@ class RemoteSwingLibrary(object):
         logger.info(agent_command)
 
     def _escape_path(self, text):
-        return text.replace("\\","\\\\")
+        return text.replace("\\", "\\\\")
 
     @contextmanager
     def _agent_java_tool_options(self, close_security_dialogs, remote_port):
@@ -267,10 +282,11 @@ class RemoteSwingLibrary(object):
         policy for each java command call.
         """
         close_security_dialogs = _tobool(close_security_dialogs)
+        en_us_locale = "-Duser.language=en -Duser.country=US "
         self._create_env(close_security_dialogs, remote_port)
-        os.environ['JAVA_TOOL_OPTIONS'] = self._agent_command
-        logger.debug("Set JAVA_TOOL_OPTIONS='%s'" % self._agent_command)
-        with tempfile.NamedTemporaryFile(prefix='grant_all_', suffix='.policy', delete=False) as t:
+        os.environ['JAVA_TOOL_OPTIONS'] = en_us_locale + self._agent_command
+        logger.debug("Set JAVA_TOOL_OPTIONS='%s%s'" % (en_us_locale, self._agent_command))
+        with tempfile.NamedTemporaryFile(prefix='grant_all_', suffix='.policy', delete=True) as t:
             text = b"""
                 grant {
                     permission java.security.AllPermission;
@@ -280,7 +296,6 @@ class RemoteSwingLibrary(object):
         java_policy = '-Djava.security.policy="%s"' % t.name
         os.environ['_JAVA_OPTIONS'] = java_policy
         logger.debug("Set _JAVA_OPTIONS='%s'" % java_policy)
-
 
     def start_application(self, alias, command, timeout=60, name_contains="", close_security_dialogs=False,
                           remote_port=0):
@@ -296,8 +311,17 @@ class RemoteSwingLibrary(object):
 
         """
         close_security_dialogs = _tobool(close_security_dialogs)
-        stdout = "remote_stdout_" + str(uuid.uuid4()) + '.txt'
-        stderr = "remote_stderr_" + str(uuid.uuid4()) + '.txt'
+        stdout = "remote-stdout" + "/" + "remote-stdout-" + re.sub('[:. ]', '-', str(datetime.datetime.now())) + '.txt'
+        stderr = "remote-stderr" + "/" + "remote-stderr-" + re.sub('[:. ]', '-', str(datetime.datetime.now())) + '.txt'
+
+        stderr_dir = self._output("remote-stderr")
+        stdout_dir = self._output("remote-stdout")
+
+        if not os.path.exists(stderr_dir):
+            os.makedirs(stderr_dir)
+        if not os.path.exists(stdout_dir):
+            os.makedirs(stdout_dir)
+
         logger.info('<a href="%s">Link to stdout</a>' % stdout, html=True)
         logger.info('<a href="%s">Link to stderr</a>' % stderr, html=True)
         REMOTE_AGENTS_LIST.set_received_to_old()
@@ -349,7 +373,7 @@ class RemoteSwingLibrary(object):
                              remote_port=0, remote_host="127.0.0.1", accept_old=True):
         RemoteSwingLibrary.TIMEOUT = timestr_to_secs(timeout)
         if remote_port:
-            url = '%s:%s'%(remote_host, remote_port)
+            url = '%s:%s' % (remote_host, remote_port)
             REMOTE_AGENTS_LIST.remove(url)
         else:
             url = self._get_agent_address(name_contains, accept_old)
@@ -382,7 +406,7 @@ class RemoteSwingLibrary(object):
     def _ping_until_timeout(self, timeout):
         timeout = float(timeout)
         delta = min(0.1, timeout)
-        endtime = timeout+time.time()
+        endtime = timeout + time.time()
         while endtime > time.time():
             self._run_from_services('ping')
             time.sleep(delta)
@@ -410,8 +434,12 @@ class RemoteSwingLibrary(object):
             raise
 
     def _take_screenshot(self):
-        logdir = self.get_log_dir()
-        filepath = os.path.join(logdir, 'remoteswinglibrary-screenshot%s.png' % int(time.time()*1000))
+        logdir = self._get_log_dir()
+        screenshotdir = logdir + "/" + "remote-screenshots"
+        if not os.path.exists(screenshotdir):
+            os.makedirs(screenshotdir)
+
+        filepath = os.path.join(screenshotdir, 'remote-screenshot%s.png' % re.sub('[:. ]', '-', str(datetime.datetime.now())))
         self._run_from_services('takeScreenshot', filepath)
         logger.info('<img src="%s"></img>' % get_link_path(filepath, logdir), html=True)
 
@@ -432,17 +460,17 @@ class RemoteSwingLibrary(object):
     def _run_and_ignore_connection_lost(self):
         try:
             yield
-        except RuntimeError as r: # disconnection from remotelibrary
+        except RuntimeError as r:  # disconnection from remotelibrary
             if 'Connection to remote server broken:' in r.args[0]:
                 logger.info('Connection died as expected')
                 return
             raise
-        except HandlerExecutionFailed as e: # disconnection from xmlrpc wrapped in robot keyword
+        except HandlerExecutionFailed as e:  # disconnection from xmlrpc wrapped in robot keyword
             if any(elem in e.args[0] for elem in ('Connection to remote server broken:', 'ProtocolError')):
                 logger.info('Connection died as expected')
                 return
             raise
-        except ProtocolError as r: # disconnection from xmlrpc in jython on some platforms
+        except ProtocolError as r:  # disconnection from xmlrpc in jython on some platforms
             logger.info('Connection died as expected')
             return
 
@@ -482,11 +510,11 @@ class RemoteSwingLibrary(object):
         args = spec[0][1:]
         if spec[3]:
             for i, item in enumerate(reversed(spec[3])):
-                args[-i-1] = args[-i-1]+'='+str(item)
+                args[-i - 1] = args[-i - 1] + '=' + str(item)
         if spec[1]:
-            args += ['*'+spec[1]]
+            args += ['*' + spec[1]]
         if spec[2]:
-            args += ['**'+spec[2]]
+            args += ['**' + spec[2]]
         return args
 
     def get_keyword_documentation(self, name):
