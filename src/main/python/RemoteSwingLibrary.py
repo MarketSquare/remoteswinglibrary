@@ -434,7 +434,7 @@ class RemoteSwingLibrary(object):
             raise
 
     def _take_screenshot(self):
-        logdir = self._get_log_dir()
+        logdir = self.get_log_dir()
         screenshotdir = logdir + "/" + "remote-screenshots"
         if not os.path.exists(screenshotdir):
             os.makedirs(screenshotdir)
