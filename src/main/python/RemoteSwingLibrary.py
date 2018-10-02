@@ -188,7 +188,10 @@ class RemoteSwingLibrary(object):
     def _read_java_version(self):
         pythonpath_value = self._get_sys_path('PYTHONPATH')
         if pythonpath_value:
-            os.environ['CLASSPATH'] = pythonpath_value + os.pathsep + os.environ['CLASSPATH']
+            old_classpath = os.environ['CLASSPATH'] if 'CLASSPATH' in os.environ else None
+            os.environ['CLASSPATH'] = pythonpath_value
+            if old_classpath:
+                os.environ['CLASSPATH'] += os.pathsep + old_classpath
         p = subprocess.Popen(['java', 'org.robotframework.remoteswinglibrary.ReadJavaVersion'],
                              stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         version, err = p.communicate()
