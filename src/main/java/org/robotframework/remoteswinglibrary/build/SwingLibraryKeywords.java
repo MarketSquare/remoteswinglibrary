@@ -52,7 +52,9 @@ public class SwingLibraryKeywords {
                 writer.write("'" + keywords[i] + "': ");
                 String docs = annotationLibrary.getKeywordDocumentation(keywords[i]);
                 docs = docs.replace("\n", "\\n");
-                docs = docs.replace("'", "\\n");
+                docs = docs.replace("'", "\\'");
+                docs = docs.replace("`Regular expressions`", "`[#Regular expressions|Regular expressions]`");
+                docs = docs.replace("`Locating components`", "`[#Locating components|Locating components]`");
                 writer.write("'" + docs + "',\n");
             }
             writer.write("}\n");
