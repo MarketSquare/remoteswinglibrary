@@ -20,6 +20,7 @@ import threading
 import time
 import traceback
 import swinglibrary
+import subprocess
 import shutil
 import datetime
 import re
@@ -175,6 +176,32 @@ class RemoteSwingLibrary(object):
     DEBUG = None
     AGENT_PATH = os.path.abspath(os.path.dirname(__file__))
     _output_dir = ''
+    JAVA9_OR_NEWER = None
+
+    @staticmethod
+    def _get_sys_path(path_type):
+        if path_type in os.environ:
+            classpath = os.environ[path_type].split(os.pathsep)
+            for path in classpath:
+                if 'remoteswinglibrary' in path:
+                    return path
+        return None
+
+    def _java9_or_newer(self):
+        version = self._read_java_version()
+        return float(version) >= 1.9
+
+    def _read_java_version(self):
+        pythonpath_value = self._get_sys_path('PYTHONPATH')
+        if pythonpath_value:
+            old_classpath = os.environ['CLASSPATH'] if 'CLASSPATH' in os.environ else None
+            os.environ['CLASSPATH'] = pythonpath_value
+            if old_classpath:
+                os.environ['CLASSPATH'] += os.pathsep + old_classpath
+        p = subprocess.Popen(['java', 'org.robotframework.remoteswinglibrary.ReadJavaVersion'],
+                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        version, err = p.communicate()
+        return version
 
     def __init__(self, port=0, debug=False):
         """
@@ -200,6 +227,8 @@ class RemoteSwingLibrary(object):
             RemoteSwingLibrary.DEBUG = _tobool(debug)
         if RemoteSwingLibrary.PORT is None:
             RemoteSwingLibrary.PORT = self._start_port_server(int(port))
+        if RemoteSwingLibrary.JAVA9_OR_NEWER is None:
+            RemoteSwingLibrary.JAVA9_OR_NEWER = _tobool(self._java9_or_newer())
         try:
             BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPATH}',
                                           self._escape_path(RemoteSwingLibrary.AGENT_PATH))
@@ -284,6 +313,9 @@ class RemoteSwingLibrary(object):
         close_security_dialogs = _tobool(close_security_dialogs)
         en_us_locale = "-Duser.language=en -Duser.country=US "
         self._create_env(close_security_dialogs, remote_port)
+        logger.info("Java version > 9: " + str(RemoteSwingLibrary.JAVA9_OR_NEWER))
+        if RemoteSwingLibrary.JAVA9_OR_NEWER:
+            self._agent_command += ' --add-exports=java.desktop/sun.awt=ALL-UNNAMED'
         os.environ['JAVA_TOOL_OPTIONS'] = en_us_locale + self._agent_command
         logger.debug("Set JAVA_TOOL_OPTIONS='%s%s'" % (en_us_locale, self._agent_command))
         with tempfile.NamedTemporaryFile(prefix='grant_all_', suffix='.policy', delete=True) as t:
