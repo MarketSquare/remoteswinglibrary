@@ -207,28 +207,37 @@ class RemoteSwingLibrary(object):
             os.remove(self.POLICY_FILE)
             self.POLICY_FILE = None
 
-    @staticmethod
-    def _get_sys_path(path_type):
-        if path_type in os.environ:
-            classpath = os.environ[path_type].split(os.pathsep)
-            for path in classpath:
-                if 'remoteswinglibrary' in path:
-                    return path
-        return None
-
     def _java9_or_newer(self):
         version = self._read_java_version()
         return float(version) >= 1.9
 
     def _read_java_version(self):
-        pythonpath_value = self._get_sys_path('PYTHONPATH')
-        if pythonpath_value:
-            old_classpath = os.environ['CLASSPATH'] if 'CLASSPATH' in os.environ else None
-            os.environ['CLASSPATH'] = pythonpath_value
-            if old_classpath:
-                os.environ['CLASSPATH'] += os.pathsep + old_classpath
+        def read_python_path_env():
+            if 'PYTHONPATH' in os.environ:
+                classpath = os.environ['PYTHONPATH'].split(os.pathsep)
+                for path in classpath:
+                    if 'remoteswinglibrary' in path:
+                        return path
+            return None
+
+        def read_sys_path():
+            for item in sys.path:
+                if 'remoteswinglibrary' in item and '.jar' in item:
+                    return item
+            return None
+
+        def construct_classpath(location):
+            classpath = location
+            if 'CLASSPATH' in os.environ:
+                classpath += os.pathsep + os.environ['CLASSPATH']
+            return classpath
+
+        location = read_python_path_env() or read_sys_path()
+        os.environ['CLASSPATH'] = construct_classpath(location)
+
         p = subprocess.Popen(['java', 'org.robotframework.remoteswinglibrary.ReadJavaVersion'],
-                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                             stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE, env=os.environ)
         version, err = p.communicate()
         return version
 
