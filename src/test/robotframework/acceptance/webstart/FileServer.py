@@ -74,7 +74,7 @@ class CustomHandler(SimpleHTTPRequestHandler):
         self.send_header("Content-type", ctype)
         try:
             fs = os.fstat(f.fileno())
-        except OSError, AttributeError:
+        except (OSError, AttributeError):
             # Jython on Windows lands here when f.fileno() is invalid
             fs = os.stat(path)
         self.send_header("Content-Length", str(fs[6]))
