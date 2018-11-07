@@ -576,7 +576,10 @@ class RemoteSwingLibrary(object):
         """
         env = self._run_from_services('getEnvironment')
         logger.info(env)
-        return env
+        if IS_PYTHON3:
+            return env.decode("utf_8")
+        else:
+            return env
 
     def get_keyword_names(self):
         overrided_keywords = ['startApplication',
