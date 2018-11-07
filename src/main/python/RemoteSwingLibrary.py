@@ -198,8 +198,14 @@ class RemoteSwingLibrary(object):
     PORT = None
     DEBUG = None
     AGENT_PATH = os.path.abspath(os.path.dirname(__file__))
+    POLICY_FILE = None
     _output_dir = ''
     JAVA9_OR_NEWER = None
+
+    def _remove_policy_file(self):
+        if self.POLICY_FILE and os.path.isfile(self.POLICY_FILE):
+            os.remove(self.POLICY_FILE)
+            self.POLICY_FILE = None
 
     @staticmethod
     def _get_sys_path(path_type):
@@ -270,6 +276,7 @@ class RemoteSwingLibrary(object):
         RemoteSwingLibrary.PORT = None
         RemoteSwingLibrary.DEBUG = None
         RemoteSwingLibrary.TIMEOUT = 60
+        self._remove_policy_file()
 
         self._initiate(port, debug)
 
@@ -343,7 +350,8 @@ class RemoteSwingLibrary(object):
             self._agent_command += ' --add-exports=java.desktop/sun.awt=ALL-UNNAMED'
         os.environ['JAVA_TOOL_OPTIONS'] = en_us_locale + self._agent_command
         logger.debug("Set JAVA_TOOL_OPTIONS='%s%s'" % (en_us_locale, self._agent_command))
-        with tempfile.NamedTemporaryFile(prefix='grant_all_', suffix='.policy', delete=True) as t:
+        with tempfile.NamedTemporaryFile(prefix='grant_all_', suffix='.policy', delete=False) as t:
+            self.POLICY_FILE = t.name
             text = b"""
                 grant {
                     permission java.security.AllPermission;
@@ -403,6 +411,8 @@ class RemoteSwingLibrary(object):
             else:
                 logger.info("Process is running, but application startup failed")
             raise
+        finally:
+            self._remove_policy_file()
 
     def _output(self, filename):
         return os.path.join(self._output_dir, filename)
@@ -442,6 +452,7 @@ class RemoteSwingLibrary(object):
         RemoteSwingLibrary.CURRENT = alias
         self._wait_for_api(url)
         logger.info('connected to started application at %s' % url)
+        self._remove_policy_file()
 
     def _initialize_remote_libraries(self, alias, url):
         swinglibrary = Remote(url)
@@ -539,7 +550,7 @@ class RemoteSwingLibrary(object):
         """
         with self._run_and_ignore_connection_lost():
             self._run_from_services('systemExit', exit_code)
-		# try closing the attached process (if started with start_application) to close any open file handles
+            # try closing the attached process (if started with start_application) to close any open file handles
         try:
             self.PROCESS.wait_for_process(handle=RemoteSwingLibrary.CURRENT, timeout=0.01)
         except:
