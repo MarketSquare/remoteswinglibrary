@@ -26,18 +26,16 @@ import sys
 import os
 from subprocess import call, check_output
 from robot import run_cli
+from xml.etree.ElementTree import ElementTree as xml
 
 TESTED = ''
 
 
 def get_rsl_ver():
-    with open('pom.xml', 'r') as f:
-        pom = f.read().splitlines()
-        for line in pom:
-            if '<version>' in line:
-                return line.strip() \
-                    .replace('<version>', '') \
-                    .replace('</version>', '')
+    ns = "http://maven.apache.org/POM/4.0.0"
+    tree  = xml()
+    tree.parse('pom.xml')
+    return tree.getroot().find("{%s}version" % ns).text
 
 
 def get_env():
