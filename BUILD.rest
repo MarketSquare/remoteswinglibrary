@@ -12,7 +12,9 @@ RemoteSwingLibrary uses Apache Maven as a build tool.
 
 - `mvn clean package` packages RemoteSwingLibrary with dependencies.
 
-- `mvn clean verify` run acceptance tests
+- `mvn clean verify` run acceptance tests.
+
+- `mvn -Dvariables=JAVA9_OR_NEWER:True clean verify` run acceptance tests with Java 9 or newer.
 
 
 Testing

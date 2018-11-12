@@ -38,7 +38,7 @@ from robot.errors import HandlerExecutionFailed, TimeoutError
 from robot.libraries.Process import Process
 from robot.libraries.Remote import Remote
 from robot.libraries.BuiltIn import BuiltIn, run_keyword_variant
-from robot.utils import timestr_to_secs, get_link_path
+from robot.utils import timestr_to_secs, get_link_path, is_string
 from robotbackgroundlogger import BackgroundLogger
 
 logger = BackgroundLogger()
@@ -208,22 +208,27 @@ class RemoteSwingLibrary(object):
             self.POLICY_FILE = None
 
     def _java9_or_newer(self):
-        version = self._read_java_version()
-        return float(version) >= 1.9
+        try:
+            version = float(self._read_java_version())
+        except:
+            logger.warn('Failed to auto-detect Java version. Assuming Java is older than 9.')
+            return False
+        return version >= 1.9
 
-    def _read_java_version(self):
+    @staticmethod
+    def _read_java_version():
         def read_python_path_env():
             if 'PYTHONPATH' in os.environ:
                 classpath = os.environ['PYTHONPATH'].split(os.pathsep)
                 for path in classpath:
-                    if 'remoteswinglibrary' in path:
-                        return path
+                    if 'remoteswinglibrary' in path.lower():
+                        return str(path)
             return None
 
         def read_sys_path():
             for item in sys.path:
-                if 'remoteswinglibrary' in item and '.jar' in item:
-                    return item
+                if 'remoteswinglibrary' in item.lower() and '.jar' in item.lower():
+                    return str(item)
             return None
 
         def construct_classpath(location):
@@ -233,7 +238,8 @@ class RemoteSwingLibrary(object):
             return classpath
 
         location = read_python_path_env() or read_sys_path()
-        os.environ['CLASSPATH'] = construct_classpath(location)
+        if location:
+            os.environ['CLASSPATH'] = construct_classpath(location)
 
         p = subprocess.Popen(['java', 'org.robotframework.remoteswinglibrary.ReadJavaVersion'],
                              stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -241,11 +247,15 @@ class RemoteSwingLibrary(object):
         version, err = p.communicate()
         return version
 
-    def __init__(self, port=0, debug=False):
+    def __init__(self, port=0, debug=False, java9_or_newer='auto-detect'):
         """
-        *port*: optional port for the server receiving connections from remote agents
+        ``port``: optional port for the server receiving connections from remote agents
 
-        *debug*: optional flag that will start agent in mode with more logging for troubleshooting (set to TRUE to enable)
+        ``debug``: optional flag that will start agent in mode with more logging for troubleshooting
+        (set to ``True`` to enable)
+
+        ``java9_or_newer``: optional flag that by default will try to automatically detect if Java version is greater
+        than 8. If it fails to detect, manually set it to ``True`` or ``False`` accordingly
 
         *Note:* RemoteSwingLibrary is a so called Global Scope library. This means when it is imported once it will be
         available until end of robot run. Parameters used in imports from others suites will be ignored.
@@ -253,20 +263,22 @@ class RemoteSwingLibrary(object):
 
         """
 
-        self._initiate(port, debug)
+        self._initiate(port, debug, java9_or_newer)
 
         if os.path.exists(self._output("remote-stderr")):
             shutil.rmtree(self._output("remote-stderr"))
         if os.path.exists(self._output("remote-stdout")):
             shutil.rmtree(self._output("remote-stdout"))
 
-    def _initiate(self, port=0, debug=False):
+    def _initiate(self, port=0, debug=False, java9_or_newer='auto-detect'):
         if RemoteSwingLibrary.DEBUG is None:
             RemoteSwingLibrary.DEBUG = _tobool(debug)
         if RemoteSwingLibrary.PORT is None:
             RemoteSwingLibrary.PORT = self._start_port_server(int(port))
-        if RemoteSwingLibrary.JAVA9_OR_NEWER is None:
+        if java9_or_newer == 'auto-detect':
             RemoteSwingLibrary.JAVA9_OR_NEWER = _tobool(self._java9_or_newer())
+        elif _tobool(java9_or_newer):
+            RemoteSwingLibrary.JAVA9_OR_NEWER = True
         try:
             BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPATH}',
                                           self._escape_path(RemoteSwingLibrary.AGENT_PATH))
@@ -275,7 +287,7 @@ class RemoteSwingLibrary(object):
         except RobotNotRunningError:
             pass
 
-    def reinitiate(self, port=0, debug=False):
+    def reinitiate(self, port=0, debug=False, java9_or_newer='auto-detect'):
         """
         Restarts RemoteSwingLibrary with new import parameters.
         """
@@ -287,7 +299,7 @@ class RemoteSwingLibrary(object):
         RemoteSwingLibrary.TIMEOUT = 60
         self._remove_policy_file()
 
-        self._initiate(port, debug)
+        self._initiate(port, debug, java9_or_newer)
 
     @property
     def current(self):
@@ -576,10 +588,9 @@ class RemoteSwingLibrary(object):
         """
         env = self._run_from_services('getEnvironment')
         logger.info(env)
-        if IS_PYTHON3:
-            return env.decode("utf_8")
-        else:
-            return env
+        if IS_PYTHON3 and not is_string(env):
+            return env.decode('utf-8')
+        return env
 
     def get_keyword_names(self):
         overrided_keywords = ['startApplication',
