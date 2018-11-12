@@ -8,7 +8,7 @@ Force tags      Webstart
 
 *** Variables ***
 ${WEBSTART DIR}=    ${CURDIR}/webstart
-${JAVA9_OR_NEWER}=  'auto-detect'
+${JAVA9_OR_NEWER}=  auto-detect
 
 
 *** Test Cases ***
