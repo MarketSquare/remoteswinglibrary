@@ -1,5 +1,5 @@
 *** Settings ***
-Library    RemoteSwingLibrary        debug=True  java9_or_newer=${JAVA9_OR_NEWER}
+Library    RemoteSwingLibrary        debug=True
 Library    FileServer
 Library    OperatingSystem
 Suite Setup     FileServer.Start
@@ -8,8 +8,6 @@ Force tags      Webstart
 
 *** Variables ***
 ${WEBSTART DIR}=    ${CURDIR}/webstart
-${JAVA9_OR_NEWER}=  auto-detect
-
 
 *** Test Cases ***
 Webstart Test
