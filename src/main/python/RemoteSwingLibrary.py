@@ -115,7 +115,7 @@ def _tobool(value):
     return str(value).lower() in ("true", "1", "yes")
 
 
-__version__ = '2.2.2'
+__version__ = '2.2.3'
 
 
 class RemoteSwingLibrary(object):
@@ -200,7 +200,7 @@ class RemoteSwingLibrary(object):
     AGENT_PATH = os.path.abspath(os.path.dirname(__file__))
     POLICY_FILE = None
     _output_dir = ''
-    JAVA9_OR_NEWER = None
+    JAVA9_OR_NEWER = False
 
     def _remove_policy_file(self):
         if self.POLICY_FILE and os.path.isfile(self.POLICY_FILE):
@@ -255,7 +255,8 @@ class RemoteSwingLibrary(object):
         (set to ``True`` to enable)
 
         ``java9_or_newer``: optional flag that by default will try to automatically detect if Java version is greater
-        than 8. If it fails to detect, manually set it to ``True`` or ``False`` accordingly
+        than 8. If it fails to detect, manually set it to ``True`` or ``False`` accordingly. If the value is different
+        from ``true``, ``1`` or ``yes`` (case insensitive) it will default to ``False``.
 
         *Note:* RemoteSwingLibrary is a so called Global Scope library. This means when it is imported once it will be
         available until end of robot run. Parameters used in imports from others suites will be ignored.
@@ -367,7 +368,7 @@ class RemoteSwingLibrary(object):
         en_us_locale = "-Duser.language=en -Duser.country=US "
         self._create_env(close_security_dialogs, remote_port)
         logger.info("Java version > 9: " + str(RemoteSwingLibrary.JAVA9_OR_NEWER))
-        if RemoteSwingLibrary.JAVA9_OR_NEWER:
+        if RemoteSwingLibrary.JAVA9_OR_NEWER is True:
             self._agent_command += ' --add-exports=java.desktop/sun.awt=ALL-UNNAMED'
         os.environ['JAVA_TOOL_OPTIONS'] = en_us_locale + self._agent_command
         logger.debug("Set JAVA_TOOL_OPTIONS='%s%s'" % (en_us_locale, self._agent_command))
