@@ -211,7 +211,8 @@ class RemoteSwingLibrary(object):
         try:
             version = float(self._read_java_version())
         except:
-            logger.warn('Failed to auto-detect Java version. Assuming Java is older than 9.')
+            logger.warn('Failed to auto-detect Java version. Assuming Java is older than 9. To run in newer Java'
+                        'compatibility mode set java9_or_newer=True when importing the library.')
             return False
         return version >= 1.9
 
