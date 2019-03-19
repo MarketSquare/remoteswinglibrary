@@ -22,6 +22,9 @@ import sun.awt.AppContext;
 import java.awt.*;
 import java.io.File;
 import java.lang.ref.WeakReference;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import org.robotframework.remoteswinglibrary.agent.ServicesLibrary;
 
@@ -33,15 +36,17 @@ class FindAppContextWithWindow implements Runnable {
     boolean debug;
     boolean closeSecurityDialogs;
     RobotConnection robotConnection;
+    String dirPath;
 
     HashMap<Dialog, SecurityDialogAccepter> dialogs = new HashMap<Dialog, SecurityDialogAccepter>();
 
-    public FindAppContextWithWindow(String host, int port, int apport, boolean debug, boolean closeSecurityDialogs) {
+    public FindAppContextWithWindow(String host, int port, int apport, boolean debug, boolean closeSecurityDialogs, String dirPath) {
         this.host = host;
         this.port = port;
         this.apport = apport;
         this.debug = debug;
         this.closeSecurityDialogs = closeSecurityDialogs;
+        this.dirPath = dirPath;
     }
 
     public void run()  {
@@ -92,7 +97,7 @@ class FindAppContextWithWindow implements Runnable {
             if (closeSecurityDialogs && window instanceof Dialog) {
                 Dialog dialog = (Dialog) window;
                 if (!dialogs.containsKey(dialog)) {
-                    SecurityDialogAccepter accepter = new SecurityDialogAccepter(dialog, ctx, robotConnection);
+                    SecurityDialogAccepter accepter = new SecurityDialogAccepter(dialog, ctx, robotConnection, dirPath);
                     dialogs.put(dialog, accepter);
                 }
             }
@@ -130,14 +135,16 @@ class FindAppContextWithWindow implements Runnable {
         private RobotConnection robotConnection;
         public int attempts = 5;
         public boolean done = false;
+        public String dirPath;
         SwingLibrary lib;
         ServicesLibrary servicesLib;
 
-        public SecurityDialogAccepter(Dialog dialog, AppContext ctx, RobotConnection robotConnection) {
+        public SecurityDialogAccepter(Dialog dialog, AppContext ctx, RobotConnection robotConnection, String dirPath) {
             this.dialog = dialog;
             this.ctx = ctx;
             this.robotConnection = robotConnection;
             this.lib = SwingLibrary.instance == null ? new SwingLibrary() : SwingLibrary.instance;
+            this.dirPath = dirPath;
         }
 
         public void run() {
@@ -154,7 +161,10 @@ class FindAppContextWithWindow implements Runnable {
                 if (dialogTitles.contains(title)) {
                     lib = new SwingLibrary();
                     servicesLib = new ServicesLibrary();
-                    String absolutePath = takeScreenshot();
+                    String absolutePath = null;
+                    if (dirPath != null) {
+                        absolutePath = takeScreenshot();
+                    }
                     lib.runKeyword("select_dialog", new Object[]{title});
                     long oldTimeout = (Long) lib.runKeyword("Set Jemmy Timeout",
                             new Object[]{"ComponentOperator.WaitComponentTimeout", "100ms"});
@@ -166,7 +176,10 @@ class FindAppContextWithWindow implements Runnable {
                     System.err.println(String.format("Security Warning Dialog '%s' has been accepted",
                             dialog.getTitle()));
                     robotConnection.connect();
-                    robotConnection.send("DIALOG:" + title + ":" + absolutePath);
+                    if (absolutePath != null)
+                        robotConnection.send("DIALOG:" + title + ":" + absolutePath);
+                    else
+                        robotConnection.send("DIALOG:" + title);
                     robotConnection.close();
                     this.done = true;
                 }
@@ -212,14 +225,18 @@ class FindAppContextWithWindow implements Runnable {
         }
 
         private String takeScreenshot() {
+            String dirPath = this.dirPath;
             long timestamp = new Date().getTime();
-            String path = String.format("security_dialog_%s.png", timestamp);
+            String name = String.format("security_dialog_%s.png", timestamp);
+            File directory = new File(dirPath);
+            directory.mkdirs();
+            Path path = Paths.get(dirPath, name);
             try {
-                servicesLib.takeScreenshot(path);
+                servicesLib.takeScreenshot(path.toString());
             } catch (Throwable t) {
                 System.err.println("Taking screenshot failed.");
             }
-            return new File(path).getAbsolutePath();
+            return new File(path.toString()).getAbsolutePath();
         }
     }
 }
