@@ -34,7 +34,11 @@ public class JavaAgent {
         boolean closeSecurityDialogs = Arrays.asList(args).contains("CLOSE_SECURITY_DIALOGS");
         String dirPath = null;
         if (Arrays.asList(args).contains("DIR_PATH")){
-            dirPath = args[args.length - 2] + ":" + args[args.length - 1];
+            if (System.getProperty("os.name").contains("Windows"))
+                dirPath = args[args.length - 2] + ":" + args[args.length - 1];
+            else
+                dirPath = args[args.length - 1];
+            System.out.println(args[args.length -1]);
         }
         int apport = 0;
         for (String arg: args)
