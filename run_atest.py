@@ -49,7 +49,7 @@ def run_tests(interpreter=None):
     test_path = os.path.join('src', 'test', 'robotframework', 'acceptance')
     if interpreter is None:
         sys.path.extend(list(get_env()))
-        run_cli(['--loglevel', 'DEBUG', test_path])
+        run_cli(['--nostatusrc', '--loglevel', 'DEBUG', test_path])
     else:
         set_env()
         if sys.platform.startswith('win'):
@@ -57,7 +57,7 @@ def run_tests(interpreter=None):
         else:
             which_program = 'which'
         which_pybot = check_output([which_program, 'pybot']).rstrip()
-        call([interpreter, which_pybot, '--loglevel', 'DEBUG', test_path])
+        call([interpreter, which_pybot, '--nostatusrc', '--loglevel', 'DEBUG', test_path])
 
 
 def set_env():
