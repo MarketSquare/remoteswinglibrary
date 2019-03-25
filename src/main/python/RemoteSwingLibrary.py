@@ -345,7 +345,7 @@ class RemoteSwingLibrary(object):
         old_options = os.environ.get('_JAVA_OPTIONS', '')
         logger.debug("Picked old JAVA_TOOL_OPTIONS='%s'" % old_tool_options)
         logger.debug("Picked old _JAVA_OPTIONS='%s'" % old_options)
-        self.set_java_tool_options(close_security_dialogs, remote_port, dir_path=dir_path)
+        self.set_java_tool_options(close_security_dialogs, remote_port, dir_path)
         try:
             yield
         finally:
@@ -371,7 +371,7 @@ class RemoteSwingLibrary(object):
         """
         close_security_dialogs = _tobool(close_security_dialogs)
         en_us_locale = "-Duser.language=en -Duser.country=US "
-        self._create_env(close_security_dialogs, remote_port, dir_path=dir_path)
+        self._create_env(close_security_dialogs, remote_port, dir_path)
         logger.info("Java version > 9: " + str(RemoteSwingLibrary.JAVA9_OR_NEWER))
         if RemoteSwingLibrary.JAVA9_OR_NEWER is True:
             self._agent_command += ' --add-exports=java.desktop/sun.awt=ALL-UNNAMED'

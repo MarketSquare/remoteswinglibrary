@@ -38,7 +38,6 @@ public class JavaAgent {
                 dirPath = args[args.length - 2] + ":" + args[args.length - 1];
             else
                 dirPath = args[args.length - 1];
-            System.out.println(args[args.length -1]);
         }
         int apport = 0;
         for (String arg: args)
