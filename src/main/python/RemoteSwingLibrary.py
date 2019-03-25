@@ -499,7 +499,7 @@ class RemoteSwingLibrary(object):
 
     def _ping_until_timeout(self, timeout):
         timeout = float(timeout)
-        delta = min(0.1, timeout)
+        delta = min(0.5, timeout)
         endtime = timeout + time.time()
         while endtime > time.time():
             self._run_from_services('ping')
@@ -625,10 +625,10 @@ class RemoteSwingLibrary(object):
             return getattr(self, name).__doc__
         return swinglibrary.keyword_documentation[name]
 
-    def run_keyword(self, name, arguments, kwargs):
+    def run_keyword(self, name, args, kwargs=None):
         if name in RemoteSwingLibrary.KEYWORDS:
-            return getattr(self, name)(*arguments, **kwargs)
+            return getattr(self, name)(*args, **(kwargs or {}))
         if self.current:
-            return self.current.run_keyword(name, arguments, kwargs)
+            return self.current.run_keyword(name, args, kwargs)
         if name in swinglibrary.keywords:
             raise Exception("To use this keyword you need to connect to application first.")
