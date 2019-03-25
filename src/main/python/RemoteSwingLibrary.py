@@ -201,7 +201,6 @@ class RemoteSwingLibrary(object):
     POLICY_FILE = None
     _output_dir = ''
     JAVA9_OR_NEWER = False
-    DIR_PATH = None
 
     def _remove_policy_file(self):
         if self.POLICY_FILE and os.path.isfile(self.POLICY_FILE):
