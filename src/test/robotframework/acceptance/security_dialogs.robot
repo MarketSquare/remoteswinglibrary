@@ -16,6 +16,7 @@ Close Security Dialogs
 Close Security Dialogs Again
     [Timeout]    60 seconds
     Start Application  App  java org.robotframework.remoteswinglibrary.SecurityDialogsApp  30 seconds  \  True
+    File Should Not Exist  security_dialog_*.png
     Set Jemmy Timeouts  15
     Select Main Window
     System Exit
