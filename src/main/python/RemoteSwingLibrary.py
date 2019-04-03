@@ -217,14 +217,16 @@ class RemoteSwingLibrary(object):
         return version >= 1.9
 
     @staticmethod
+    def read_python_path_env():
+        if 'PYTHONPATH' in os.environ:
+            classpath = os.environ['PYTHONPATH'].split(os.pathsep)
+            for path in classpath:
+                if 'remoteswinglibrary' in path.lower():
+                    return str(path)
+        return None
+
+    @staticmethod
     def _read_java_version():
-        def read_python_path_env():
-            if 'PYTHONPATH' in os.environ:
-                classpath = os.environ['PYTHONPATH'].split(os.pathsep)
-                for path in classpath:
-                    if 'remoteswinglibrary' in path.lower():
-                        return str(path)
-            return None
 
         def read_sys_path():
             for item in sys.path:
@@ -238,7 +240,7 @@ class RemoteSwingLibrary(object):
                 classpath += os.pathsep + os.environ['CLASSPATH']
             return classpath
 
-        location = read_python_path_env() or read_sys_path()
+        location = RemoteSwingLibrary.read_python_path_env() or read_sys_path()
         if location:
             os.environ['CLASSPATH'] = construct_classpath(location)
 
@@ -282,6 +284,8 @@ class RemoteSwingLibrary(object):
         elif _tobool(java9_or_newer):
             RemoteSwingLibrary.JAVA9_OR_NEWER = True
         try:
+            if '__pyclasspath__' in RemoteSwingLibrary.AGENT_PATH:
+                RemoteSwingLibrary.AGENT_PATH = RemoteSwingLibrary.read_python_path_env()
             BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPATH}',
                                           self._escape_path(RemoteSwingLibrary.AGENT_PATH))
             BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPORT}', RemoteSwingLibrary.PORT)
