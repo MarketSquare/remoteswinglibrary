@@ -7,7 +7,7 @@ Test Teardown  Remove Files  *.png
 *** Test Cases ***
 Close Security Dialogs
     [Timeout]    60 seconds
-    Start Application  App  java org.robotframework.remoteswinglibrary.SecurityDialogsApp  30 seconds  \  True
+    Start Application  App  java org.robotframework.remoteswinglibrary.SecurityDialogsApp  30 seconds  \  True  dir_path=.
     File Should Exist  security_dialog_*.png
     Set Jemmy Timeouts  15
     Select Main Window
@@ -16,6 +16,16 @@ Close Security Dialogs
 Close Security Dialogs Again
     [Timeout]    60 seconds
     Start Application  App  java org.robotframework.remoteswinglibrary.SecurityDialogsApp  30 seconds  \  True
+    File Should Not Exist  security_dialog_*.png
     Set Jemmy Timeouts  15
     Select Main Window
     System Exit
+
+Close Security Dialogs With Different Screenshot Path
+    [Timeout]    60 seconds
+    Start Application  App  java org.robotframework.remoteswinglibrary.SecurityDialogsApp  30 seconds  \  True  dir_path=security_dialogs_dir/
+    File Should Exist  security_dialogs_dir/security_dialog_*.png
+    Set Jemmy Timeouts  15
+    Select Main Window
+    System Exit
+    [Teardown]  Remove Directory  security_dialogs_dir  True
