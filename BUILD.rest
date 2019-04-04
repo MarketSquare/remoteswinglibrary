@@ -24,7 +24,7 @@ Run ``python run_atest.py --help`` to find what options for testing are possible
 Releasing
 =========
 
-- update library version to x.x.x in pom.xml
+- update library version to x.x.x in pom.xml and in RemoteSwingLibrary.py
 - run tests ``mvn clean verify``
 - ``git commit -m "version to x.x.x" pom.xml``
 - generate the html documentation: ``PYTHONPATH=target/remoteswinglibrary-x.x.x.jar python -m robot.libdoc RemoteSwingLibrary RemoteSwingLibrary-x.x.x.html``
