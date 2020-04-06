@@ -269,11 +269,6 @@ class RemoteSwingLibrary(object):
 
         self._initiate(port, debug, java9_or_newer)
 
-        if os.path.exists(self._output("remote-stderr")):
-            shutil.rmtree(self._output("remote-stderr"))
-        if os.path.exists(self._output("remote-stdout")):
-            shutil.rmtree(self._output("remote-stdout"))
-
     def _initiate(self, port=0, debug=False, java9_or_newer='auto-detect'):
         if RemoteSwingLibrary.DEBUG is None:
             RemoteSwingLibrary.DEBUG = _tobool(debug)
@@ -393,7 +388,7 @@ class RemoteSwingLibrary(object):
         logger.debug("Set _JAVA_OPTIONS='%s'" % java_policy)
 
     def start_application(self, alias, command, timeout=60, name_contains="", close_security_dialogs=False,
-                          remote_port=0, dir_path=None):
+                          remote_port=0, dir_path=None, stdout=None, stderr=None):
         """Starts the process in the ``command`` parameter  on the host operating system.
         The given ``alias`` is stored to identify the started application in RemoteSwingLibrary.
 
@@ -409,26 +404,38 @@ class RemoteSwingLibrary(object):
 
         ``dir_path`` is the path where security dialogs screenshots are saved. It is working both with relative
         and absolute path. If ``dir_path`` is not specified the screenshots will not be taken.
+
+        ``stdout`` is the path where to write stdout to.
+
+        ``stderr`` is the path where to write stderr to.
         """
         close_security_dialogs = _tobool(close_security_dialogs)
-        stdout = "remote-stdout" + "/" + "remote-stdout-" + re.sub('[:. ]', '-', str(datetime.datetime.now())) + '.txt'
-        stderr = "remote-stderr" + "/" + "remote-stderr-" + re.sub('[:. ]', '-', str(datetime.datetime.now())) + '.txt'
-
-        stderr_dir = self._output("remote-stderr")
-        stdout_dir = self._output("remote-stdout")
-
-        if not os.path.exists(stderr_dir):
-            os.makedirs(stderr_dir)
+    
+        now = datetime.datetime.now()
+        current_date = now.strftime("%Y%m%d%H%M%S")
+        
+        if stdout is None:
+            stdout_file_name = current_date + ".remoteswinglibrary" + ".out"
+            stdout = self._output(stdout_file_name)
+        (stdout_dir, stdout_file_name) = os.path.split(stdout)
         if not os.path.exists(stdout_dir):
             os.makedirs(stdout_dir)
+            
+        if stderr is None:
+            stderr_file_name = current_date + ".remoteswinglibrary" + ".err"
+            stderr = self._output(stderr_file_name)
+        if stderr != "STDOUT":
+            (stderr_dir, stderr_file_name) = os.path.split(stderr)
+            if not os.path.exists(stderr_dir):
+                os.makedirs(stderr_dir)
 
         logger.info('<a href="%s">Link to stdout</a>' % stdout, html=True)
         logger.info('<a href="%s">Link to stderr</a>' % stderr, html=True)
         REMOTE_AGENTS_LIST.set_received_to_old()
         with self._agent_java_tool_options(close_security_dialogs, remote_port, dir_path):
             self.PROCESS.start_process(command, alias=alias, shell=True,
-                                       stdout=self._output(stdout),
-                                       stderr=self._output(stderr))
+                                       stdout=stdout,
+                                       stderr=stderr)
         try:
             self._application_started(alias, timeout, name_contains, remote_port, accept_old=False)
         except TimeoutError:
