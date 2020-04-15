@@ -24,6 +24,7 @@ Examples:
 '''
 import sys
 import os
+import platform
 from subprocess import call, check_output
 from robot import run_cli
 from xml.etree.ElementTree import ElementTree as xml
@@ -71,7 +72,7 @@ if __name__ == '__main__':
         sys.exit(251)
 
     if '--nobuild' not in sys.argv:
-        if sys.platform.startswith('win'):
+        if 'windows' in platform.platform().lower():
             call(['mvn', 'clean', 'package'], shell=True)
         else:
             call(['mvn', 'clean', 'package'])
