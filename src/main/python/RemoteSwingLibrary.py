@@ -38,7 +38,7 @@ from robot.errors import HandlerExecutionFailed, TimeoutError
 from robot.libraries.Process import Process
 from robot.libraries.Remote import Remote
 from robot.libraries.BuiltIn import BuiltIn, run_keyword_variant
-from robot.utils import timestr_to_secs, get_link_path, is_string
+from robot.utils import timestr_to_secs, get_link_path, is_string, is_truthy
 from robotbackgroundlogger import BackgroundLogger
 
 logger = BackgroundLogger()
@@ -333,7 +333,7 @@ class RemoteSwingLibrary(object):
             agent_command += ':DEBUG'
         if _tobool(close_security_dialogs):
             agent_command += ':CLOSE_SECURITY_DIALOGS'
-        if dir_path:
+        if is_truthy(dir_path):
             dir_path = os.path.abspath(dir_path)
             agent_command += ':DIR_PATH:%s' % dir_path
         self._agent_command = agent_command
