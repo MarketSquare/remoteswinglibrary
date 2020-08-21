@@ -17,16 +17,12 @@
 
 package org.robotframework.remoteswinglibrary.remote;
 
-import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.robotframework.remoteserver.RemoteServer;
 
-public class DaemonRemoteServer extends RemoteServer{
-    
-    public DaemonRemoteServer() {
-        super();
-        QueuedThreadPool pool = new QueuedThreadPool();
-        pool.setDaemon(true);
-        this.server.setThreadPool(pool);
+public class DaemonRemoteServer extends RemoteServer {
+
+    public DaemonRemoteServer(int port) {
+        super(port);
     }
-        
+
 }

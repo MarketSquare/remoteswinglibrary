@@ -38,14 +38,19 @@
 
   <dependencies>
     <dependency>
-    <groupId>com.github.ombre42</groupId>
+    <groupId>org.robotframework</groupId>
     <artifactId>jrobotremoteserver</artifactId>
-    <version>3.0</version>
+    <version>4.0.0</version>
     </dependency>
     <dependency>
     <groupId>org.robotframework</groupId>
     <artifactId>swinglibrary</artifactId>
-    <version>1.9.9</version>
+    <version>2.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.robotframework</groupId>
+      <artifactId>javalib-core</artifactId>
+      <version>2.0.3</version>
     </dependency>
   </dependencies>
 
@@ -56,8 +61,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.1</version>
         <configuration>
-          <source>1.6</source>
-          <target>1.6</target>
+          <source>8</source>
+          <target>8</target>
         </configuration>
       </plugin>
       <plugin>
@@ -87,7 +92,7 @@
       <plugin>
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>jarjar-maven-plugin</artifactId>
-        <version>1.8</version>
+        <version>1.9</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -98,75 +103,30 @@
               <output>${project.build.directory}/jarjarred</output>
               <overwrite>true</overwrite>
               <includes>
-                <include>com.github.ombre42:jrobotremoteserver</include>
-                <include>org.apache.xmlrpc:xmlrpc-server</include>
-                <include>org.apache.xmlrpc:xmlrpc-common</include>
+                <include>commons-logging:commons-logging</include>
+                <include>javax.servlet:javax.servlet-api</include>
+                <include>junit:junit</include>
+                <include>org.apache.commons:commons-collections</include>
+                <include>org.apache.commons:commons-lang3</include>
+                <include>org.apache.commons:commons-text</include>
+                <include>org.apache.logging.log4j:log4j-api</include>
+                <include>org.apache.logging.log4j:log4j-core</include>
+                <include>org.apache.logging.log4j:log4j-jcl</include>
                 <include>org.apache.ws.commons.util:ws-commons-util</include>
-                <include>xml-apis:xml-apis</include>
-                <include>org.eclipse.jetty:jetty-servlet</include>
-                <include>org.eclipse.jetty:jetty-security</include>
-                <include>org.eclipse.jetty:jetty-server</include>
-                <include>org.eclipse.jetty:jetty-orbit</include>
-                <include>org.eclipse.jetty.orbit:javax.servlet</include>
-                <include>org.eclipse.jetty:jetty-continuation</include>
+                <include>org.apache.xmlrpc:xmlrpc-common</include>
+                <include>org.apache.xmlrpc:xmlrpc-server</include>
                 <include>org.eclipse.jetty:jetty-http</include>
                 <include>org.eclipse.jetty:jetty-io</include>
+                <include>org.eclipse.jetty:jetty-security</include>
+                <include>org.eclipse.jetty:jetty-server</include>
+                <include>org.eclipse.jetty:jetty-servlet</include>
                 <include>org.eclipse.jetty:jetty-util</include>
-                <include>commons-lang:commons-lang</include>
-                <include>commons-logging:commons-logging</include>
-                <include>log4j:log4j</include>
                 <include>org.robotframework:javalib-core</include>
+                <include>org.robotframework:jrobotremoteserver</include>
                 <include>org.robotframework:swinglibrary</include>
-                <include>org.netbeans:jemmy</include>
-                <include>abbot:abbot</include>
-                <include>gnu-regexp:gnu-regexp</include>
-                <include>junit:junit</include>
-                <include>org.jretrofit:jretrofit</include>
-                <include>commons-collections:commons-collections</include>
-                <include>com.thoughworks.parameter:parameter</include>
+                <include>xml-apis:xml-apis</include>
               </includes>
               <rules>
-                <rule>
-                  <pattern>com.thoughtworks.**</pattern>
-                  <result>org.robotframework.remoteswinglibrary.@0</result>
-                </rule>
-                <rule>
-                  <pattern>edu.emory.**</pattern>
-                  <result>org.robotframework.remoteswinglibrary.@0</result>
-                </rule>
-                <rule>
-                  <pattern>org.aopalliance.**</pattern>
-                  <result>org.robotframework.remoteswinglibrary.@0</result>
-                </rule>
-                <rule>
-                  <pattern>org.laughingpanda.**</pattern>
-                  <result>org.robotframework.remoteswinglibrary.@0</result>
-                </rule>
-                <rule>
-                  <pattern>org.apache.log4j.**</pattern>
-                  <result>@0</result>
-                </rule>
-                <rule>
-                  <pattern>org.apache.**</pattern>
-                  <result>org.robotframework.remoteswinglibrary.@0</result>
-                </rule>
-                <rule>
-                  <pattern>org.springframework.**</pattern>
-                  <result>org.robotframework.remoteswinglibrary.@0</result>
-                </rule>
-                <rule>
-                  <pattern>javax.servlet.**</pattern>
-                  <result>org.robotframework.remoteswinglibrary.@0</result>
-                </rule>
-                <keep>
-                  <pattern>org.apache.log4j.**</pattern>
-                </keep>
-                <keep>
-                  <pattern>org.robotframework.**</pattern>
-                </keep>
-                <keep>
-                  <pattern>JavaTools</pattern>
-                </keep>
               </rules>
             </configuration>
           </execution>
@@ -202,7 +162,7 @@
         <plugin>
             <groupId>org.robotframework</groupId>
             <artifactId>robotframework-maven-plugin</artifactId>
-            <version>1.5.1</version>
+            <version>1.7.1</version>
             <executions>
               <execution>
                 <goals>
@@ -216,6 +176,8 @@
                     <extraPathDirectory>target/remoteswinglibrary-${project.version}.jar</extraPathDirectory>
                     <extraPathDirectory>${basedir}/src/test/robotframework/acceptance/webstart</extraPathDirectory>
                 </extraPathDirectories>
+              <libdoc/>
+              <testdoc/>
             </configuration>
             <dependencies>
               <dependency>
@@ -244,7 +206,7 @@
         <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>exec-maven-plugin</artifactId>
-            <version>1.1.1</version>
+            <version>3.0.0</version>
             <executions>
                 <execution>
                     <phase>compile</phase>

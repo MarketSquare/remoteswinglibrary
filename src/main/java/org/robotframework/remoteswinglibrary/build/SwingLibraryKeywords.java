@@ -5,7 +5,8 @@ import org.robotframework.javalib.library.AnnotationLibrary;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by wojtek on 16/05/16.
@@ -23,8 +24,8 @@ public class SwingLibraryKeywords {
         try {
             System.out.println("Generating keywords list...");
 
-            String[] keywords = annotationLibrary.getKeywordNames();
-            Arrays.sort(keywords);
+            List<String> keywords = annotationLibrary.getKeywordNames();
+            Collections.sort(keywords);
             File outFile = new File(target);
             System.out.println("target: " + outFile.getCanonicalPath());
 
@@ -32,25 +33,25 @@ public class SwingLibraryKeywords {
             writer.write("'''\nThis file is generated automatically and should not be edited.\n'''\n");
 
             writer.write("keywords = [");
-            for (int i = 0; i < keywords.length; i++)
-                writer.write("'" + keywords[i] + "', ");
+            for (String keyword : keywords)
+                writer.write("'" + keyword + "', ");
             writer.write("]\n");
 
             writer.write("keyword_arguments = {");
-            for (int i = 0; i < keywords.length; i++) {
-                writer.write("'" + keywords[i] + "': ");
-                String[] args = annotationLibrary.getKeywordArguments(keywords[i]);
+            for (String keyword : keywords) {
+                writer.write("'" + keyword + "': ");
+                List<String> args = annotationLibrary.getKeywordArguments(keyword);
                 writer.write("[");
-                for (int j = 0; j < args.length; j++)
-                    writer.write("'" + args[j] + "', ");
+                for (String arg : args)
+                    writer.write("'" + arg + "', ");
                 writer.write("],\n");
             }
             writer.write("}\n");
 
             writer.write("keyword_documentation = {");
-            for (int i = 0; i < keywords.length; i++) {
-                writer.write("'" + keywords[i] + "': ");
-                String docs = annotationLibrary.getKeywordDocumentation(keywords[i]);
+            for (String keyword : keywords) {
+                writer.write("'" + keyword + "': ");
+                String docs = annotationLibrary.getKeywordDocumentation(keyword);
                 docs = docs.replace("\n", "\\n");
                 docs = docs.replace("'", "\\'");
                 docs = docs.replace("`Regular expressions`", "`[#Regular expressions|Regular expressions]`");
