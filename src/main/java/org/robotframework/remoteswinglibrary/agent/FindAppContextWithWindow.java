@@ -22,11 +22,9 @@ import sun.awt.AppContext;
 import java.awt.*;
 import java.io.File;
 import java.lang.ref.WeakReference;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import org.robotframework.remoteswinglibrary.agent.ServicesLibrary;
 
 class FindAppContextWithWindow implements Runnable {
 
@@ -165,13 +163,13 @@ class FindAppContextWithWindow implements Runnable {
                     if (dirPath != null) {
                         absolutePath = takeScreenshot();
                     }
-                    lib.runKeyword("select_dialog", new Object[]{title});
+                    lib.runKeyword("select_dialog", Arrays.asList(title));
                     long oldTimeout = (Long) lib.runKeyword("Set Jemmy Timeout",
-                            new Object[]{"ComponentOperator.WaitComponentTimeout", "100ms"});
+                            Arrays.asList("ComponentOperator.WaitComponentTimeout", "100ms"));
                     checkCheckboxes();
                     clickAcceptButton();
                     lib.runKeyword("Set Jemmy Timeout",
-                            new Object[]{"ComponentOperator.WaitComponentTimeout", oldTimeout});
+                            Arrays.asList("ComponentOperator.WaitComponentTimeout", oldTimeout));
 
                     System.err.println(String.format("Security Warning Dialog '%s' has been accepted",
                             dialog.getTitle()));
@@ -200,7 +198,7 @@ class FindAppContextWithWindow implements Runnable {
 
             for (String text: checkboxList) {
                 try {
-                    lib.runKeyword("check_check_box", new Object[]{text});
+                    lib.runKeyword("check_check_box", Arrays.asList(text));
                     return;
                 }
                 catch (Throwable t) {
@@ -216,7 +214,7 @@ class FindAppContextWithWindow implements Runnable {
 
             for (String text: acceptButtonList) {
                 try {
-                    lib.runKeyword("push_button", new Object[]{text});
+                    lib.runKeyword("push_button", Arrays.asList(text));
                     return;
                 }
                 catch (Throwable t) {
