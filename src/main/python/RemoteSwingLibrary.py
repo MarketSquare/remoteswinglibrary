@@ -38,7 +38,7 @@ from robot.errors import HandlerExecutionFailed, TimeoutError
 from robot.libraries.Process import Process
 from robot.libraries.Remote import Remote
 from robot.libraries.BuiltIn import BuiltIn, run_keyword_variant
-from robot.utils import timestr_to_secs, get_link_path, is_string
+from robot.utils import timestr_to_secs, get_link_path, is_string, is_truthy
 from robotbackgroundlogger import BackgroundLogger
 
 logger = BackgroundLogger()
@@ -320,15 +320,17 @@ class RemoteSwingLibrary(object):
         t.start()
         return server.server_address[1]
 
-    def _create_env(self, close_security_dialogs=False, remote_port=0, dir_path=None):
+    def _create_env(self, close_security_dialogs=False, remote_port=0, dir_path=None, custom=None):
         agent_command = '-javaagent:"%s"=127.0.0.1:%s' % (RemoteSwingLibrary.AGENT_PATH, RemoteSwingLibrary.PORT)
         if int(remote_port):
             agent_command += ':APPORT=%s' % remote_port
+        if custom:
+            agent_command += ':CUSTOM=%s' % custom
         if RemoteSwingLibrary.DEBUG:
             agent_command += ':DEBUG'
         if _tobool(close_security_dialogs):
             agent_command += ':CLOSE_SECURITY_DIALOGS'
-        if dir_path:
+        if is_truthy(dir_path):
             dir_path = os.path.abspath(dir_path)
             agent_command += ':DIR_PATH:%s' % dir_path
         self._agent_command = agent_command
@@ -338,12 +340,12 @@ class RemoteSwingLibrary(object):
         return text.replace("\\", "\\\\")
 
     @contextmanager
-    def _agent_java_tool_options(self, close_security_dialogs, remote_port, dir_path):
+    def _agent_java_tool_options(self, close_security_dialogs, remote_port, dir_path, custom):
         old_tool_options = os.environ.get('JAVA_TOOL_OPTIONS', '')
         old_options = os.environ.get('_JAVA_OPTIONS', '')
         logger.debug("Picked old JAVA_TOOL_OPTIONS='%s'" % old_tool_options)
         logger.debug("Picked old _JAVA_OPTIONS='%s'" % old_options)
-        self.set_java_tool_options(close_security_dialogs, remote_port, dir_path)
+        self.set_java_tool_options(close_security_dialogs, remote_port, dir_path, custom)
         try:
             yield
         finally:
@@ -352,7 +354,7 @@ class RemoteSwingLibrary(object):
             logger.debug("Returned old JAVA_TOOL_OPTIONS='%s'" % old_tool_options)
             logger.debug("Returned old _JAVA_OPTIONS='%s'" % old_options)
 
-    def set_java_tool_options(self, close_security_dialogs=True, remote_port=0, dir_path=None):
+    def set_java_tool_options(self, close_security_dialogs=True, remote_port=0, dir_path=None, custom=None):
         """Sets the ``JAVA_TOOL_OPTIONS`` to include RemoteSwingLibrary Agent and
         the ``_JAVA_OPTIONS`` to set a temporary policy granting all permissions.
 
@@ -369,7 +371,7 @@ class RemoteSwingLibrary(object):
         """
         close_security_dialogs = _tobool(close_security_dialogs)
         en_us_locale = "-Duser.language=en -Duser.country=US "
-        self._create_env(close_security_dialogs, remote_port, dir_path)
+        self._create_env(close_security_dialogs, remote_port, dir_path, custom)
         logger.info("Java version > 9: " + str(RemoteSwingLibrary.JAVA9_OR_NEWER))
         if RemoteSwingLibrary.JAVA9_OR_NEWER is True:
             self._agent_command += ' --add-exports=java.desktop/sun.awt=ALL-UNNAMED'
@@ -388,7 +390,7 @@ class RemoteSwingLibrary(object):
         logger.debug("Set _JAVA_OPTIONS='%s'" % java_policy)
 
     def start_application(self, alias, command, timeout=60, name_contains="", close_security_dialogs=False,
-                          remote_port=0, dir_path=None, stdout=None, stderr=None):
+                          remote_port=0, dir_path=None, stdout=None, stderr=None, custom=None):
         """Starts the process in the ``command`` parameter  on the host operating system.
         The given ``alias`` is stored to identify the started application in RemoteSwingLibrary.
 
@@ -408,6 +410,8 @@ class RemoteSwingLibrary(object):
         ``stdout`` is the path where to write stdout to.
 
         ``stderr`` is the path where to write stderr to.
+    
+        ``custom`` is a customizable field that can be set when starting the Java agent.
         """
         close_security_dialogs = _tobool(close_security_dialogs)
     
@@ -432,7 +436,7 @@ class RemoteSwingLibrary(object):
         logger.info('<a href="%s">Link to stdout</a>' % stdout, html=True)
         logger.info('<a href="%s">Link to stderr</a>' % stderr, html=True)
         REMOTE_AGENTS_LIST.set_received_to_old()
-        with self._agent_java_tool_options(close_security_dialogs, remote_port, dir_path):
+        with self._agent_java_tool_options(close_security_dialogs, remote_port, dir_path, custom):
             self.PROCESS.start_process(command, alias=alias, shell=True,
                                        stdout=stdout,
                                        stderr=stderr)
