@@ -35,23 +35,25 @@ class FindAppContextWithWindow implements Runnable {
     boolean closeSecurityDialogs;
     RobotConnection robotConnection;
     String dirPath;
+    String custom;
 
     HashMap<Dialog, SecurityDialogAccepter> dialogs = new HashMap<Dialog, SecurityDialogAccepter>();
 
-    public FindAppContextWithWindow(String host, int port, int apport, boolean debug, boolean closeSecurityDialogs, String dirPath) {
+    public FindAppContextWithWindow(String host, int port, int apport, boolean debug, boolean closeSecurityDialogs, String dirPath, String custom) {
         this.host = host;
         this.port = port;
         this.apport = apport;
         this.debug = debug;
         this.closeSecurityDialogs = closeSecurityDialogs;
         this.dirPath = dirPath;
+        this.custom = custom;
     }
 
     public void run()  {
         try {
             robotConnection = new RobotConnection(host, port);
             AppContext appContext = getAppContextWithWindow();
-            sun.awt.SunToolkit.invokeLaterOnAppContext(appContext, new ServerThread(robotConnection, apport, debug));
+            sun.awt.SunToolkit.invokeLaterOnAppContext(appContext, new ServerThread(robotConnection, apport, debug, custom));
         } catch (Exception e) {
             if (debug) {
                 e.printStackTrace();

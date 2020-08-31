@@ -17,7 +17,6 @@
 package org.robotframework.remoteswinglibrary.agent;
 
 import org.robotframework.remoteserver.RemoteServer;
-import org.robotframework.remoteswinglibrary.remote.DaemonRemoteServer;
 import org.robotframework.swing.SwingLibrary;
 
 import java.io.IOException;
@@ -27,24 +26,26 @@ import java.util.Map;
 public class ServerThread implements Runnable {
     int apport;
     boolean debug;
+    String custom;
     RobotConnection robotConnection;
 
-    public ServerThread(RobotConnection robotConnection,  int apport, boolean debug) {
+    public ServerThread(RobotConnection robotConnection,  int apport, boolean debug, String custom) {
         this.robotConnection = robotConnection;
         this.apport = apport;
         this.debug = debug;
+        this.custom = custom;
     }
 
     public void run()  {
         try {
-            RemoteServer server = new DaemonRemoteServer(apport);
+            RemoteServer server = new RemoteServer(apport);
             SwingLibrary swingLibrary = SwingLibrary.instance == null ? new SwingLibrary() : SwingLibrary.instance;
             server.putLibrary("/RPC2", swingLibrary);
             server.putLibrary("/services", new ServicesLibrary());
             server.setAllowStop(true);
             server.start();
             Integer actualPort = server.getLocalPort();
-            notifyPort(actualPort);
+            notifyPort(actualPort, custom);
         } catch (Exception e) {
             if (debug) {
                 e.printStackTrace();
@@ -54,9 +55,9 @@ public class ServerThread implements Runnable {
         }
     }
 
-    private void notifyPort(final Integer portToNotify) throws IOException {
+    private void notifyPort(final Integer portToNotify, String custom) throws IOException {
         robotConnection.connect();
-        robotConnection.send("PORT:" + portToNotify.toString() + ":" + getName());
+        robotConnection.send("PORT:" + portToNotify.toString() + ":" + getName() + ":" + custom);
         robotConnection.close();
     }
 

@@ -115,7 +115,7 @@ def _tobool(value):
     return str(value).lower() in ("true", "1", "yes")
 
 
-__version__ = '2.2.5'
+__version__ = '2.2.6'
 
 
 class RemoteSwingLibrary(object):
@@ -412,6 +412,8 @@ class RemoteSwingLibrary(object):
         ``stderr`` is the path where to write stderr to.
     
         ``custom`` is a customizable field that can be set when starting the Java agent.
+
+        This keyword returns the remote port of the connection.
         """
         close_security_dialogs = _tobool(close_security_dialogs)
     
@@ -456,6 +458,7 @@ class RemoteSwingLibrary(object):
             raise
         finally:
             self._remove_policy_file()
+        return RemoteSwingLibrary.PORT
 
     def _output(self, filename):
         return os.path.join(self._output_dir, filename)
