@@ -115,7 +115,7 @@ def _tobool(value):
     return str(value).lower() in ("true", "1", "yes")
 
 
-__version__ = '2.2.8'
+__version__ = '2.2.9'
 
 
 class RemoteSwingLibrary(object):
