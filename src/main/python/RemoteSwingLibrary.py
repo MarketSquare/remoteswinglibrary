@@ -115,7 +115,7 @@ def _tobool(value):
     return str(value).lower() in ("true", "1", "yes")
 
 
-__version__ = '2.2.9'
+__version__ = '2.3.0'
 
 
 class RemoteSwingLibrary(object):
@@ -410,23 +410,23 @@ class RemoteSwingLibrary(object):
         ``stdout`` is the path where to write stdout to.
 
         ``stderr`` is the path where to write stderr to.
-    
+
         ``custom`` is a customizable field that can be set when starting the Java agent.
 
         This keyword returns the remote port of the connection.
         """
         close_security_dialogs = _tobool(close_security_dialogs)
-    
+
         now = datetime.datetime.now()
         current_date = now.strftime("%Y%m%d%H%M%S")
-        
+
         if stdout is None:
             stdout_file_name = current_date + ".remoteswinglibrary" + ".out"
             stdout = self._output(stdout_file_name)
         (stdout_dir, stdout_file_name) = os.path.split(stdout)
         if not os.path.exists(stdout_dir):
             os.makedirs(stdout_dir)
-            
+
         if stderr is None:
             stderr_file_name = current_date + ".remoteswinglibrary" + ".err"
             stderr = self._output(stderr_file_name)
