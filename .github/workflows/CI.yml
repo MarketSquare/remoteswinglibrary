@@ -19,6 +19,10 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 8
+      - name: Set up Python 3.10.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.10.9
       - name: Run tests on Linux
         if: runner.os == 'Linux'
         run: |
