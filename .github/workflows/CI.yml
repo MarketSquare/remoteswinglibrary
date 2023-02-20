@@ -9,6 +9,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ 'ubuntu-latest', 'windows-latest' ]
+        python-version: ['3.7', '3.9', '3.10', '3.11.2', 'pypy-3.8', 'pypy-3.9']
         include:
           - os: ubuntu-latest
             set_display: export DISPLAY=:99; Xvfb :99 -screen 0 1920x1080x24 -ac -noreset & sleep 3
@@ -19,10 +20,10 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 8
-      - name: Set up Python 3.10.9
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
-          python-version: 3.10.9
+          python-version: ${{ matrix.python-version }}
       - name: Run tests on Linux
         if: runner.os == 'Linux'
         run: |
