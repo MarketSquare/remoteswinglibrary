@@ -11,7 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-from __future__ import with_statement
+from __future__ import print_function
 try:
     from collections import OrderedDict
 except ImportError:  # New in 2.7 but 2.4 compatible recipe would be available.
@@ -72,13 +72,13 @@ class BackgroundLogger(Logger):
 
     def _log_messages_by_thread(self, name):
         for message in self._messages.pop(name, []):
-            print message.format()
+            print(message.format())
 
     def _log_all_messages(self):
         for thread in list(self._messages):
-            print "*HTML* <b>Messages by '%s'</b>" % thread
+            print("*HTML* <b>Messages by '%s'</b>" % thread)
             for message in self._messages.pop(thread):
-                print message.format()
+                print(message.format())
 
     def reset_background_messages(self, name=None):
         with self.lock:

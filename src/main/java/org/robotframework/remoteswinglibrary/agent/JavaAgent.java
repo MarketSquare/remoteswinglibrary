@@ -19,6 +19,7 @@ package org.robotframework.remoteswinglibrary.agent;
 
 import javax.swing.*;
 import java.lang.instrument.Instrumentation;
+import java.util.Arrays;
 
 
 public class JavaAgent {
@@ -29,9 +30,25 @@ public class JavaAgent {
         String[] args = agentArgument.split(":");
         String host = args[0];
         int port = getRemoteSwingLibraryPort(args[1]);
-        boolean debug = args.length > 2 && args[2].equals("DEBUG");
+        boolean debug = Arrays.asList(args).contains("DEBUG");
+        boolean closeSecurityDialogs = Arrays.asList(args).contains("CLOSE_SECURITY_DIALOGS");
+        String custom = null;
+        String dirPath = null;
+        if (Arrays.asList(args).contains("DIR_PATH")){
+            if (System.getProperty("os.name").contains("Windows"))
+                dirPath = args[args.length - 2] + ":" + args[args.length - 1];
+            else
+                dirPath = args[args.length - 1];
+        }
+        int apport = 0;
+        for (String arg: args)
+            if (arg.startsWith("APPORT="))
+                apport = Integer.parseInt(arg.split("=")[1]);
+            else if (arg.startsWith("CUSTOM=")) {
+                custom = arg.split("=")[1];
+            }
         try {
-            Thread findAppContext = new Thread(new FindAppContextWithWindow(host, port, debug));
+            Thread findAppContext = new Thread(new FindAppContextWithWindow(host, port, apport, debug, closeSecurityDialogs, dirPath, custom));
             findAppContext.setDaemon(true);
             findAppContext.start();
             // Sleep to ensure that findAppContext daemon thread is kept alive until the
