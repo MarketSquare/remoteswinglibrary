@@ -630,7 +630,7 @@ class RemoteSwingLibrary(object):
         return swinglibrary.keyword_arguments[name]
 
     def _get_args(self, method_name):
-        spec = inspect.getfullargspec(getattr(self, method_name))
+        spec = inspect.getargspec(getattr(self, method_name))
         args = spec[0][1:]
         if spec[3]:
             for i, item in enumerate(reversed(spec[3])):
