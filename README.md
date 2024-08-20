@@ -14,7 +14,7 @@ RemoteSwingLibrary works also with Java Web Start applications. One of its inten
 Installation
 ------------
 
-* Download latest RemoteSwingLibrary and documentation from https://github.com/robotframework/remoteswinglibrary/releases/
+* Download latest RemoteSwingLibrary and documentation from https://github.com/MarketSquare/remoteswinglibrary/releases/
 * Add downloaded jar to PYTHONPATH
 * After that, you can import the library in your test cases:
     ```robotframework
