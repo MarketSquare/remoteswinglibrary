@@ -274,6 +274,7 @@ class RemoteSwingLibrary(object):
             RemoteSwingLibrary.DEBUG = _tobool(debug)
         if RemoteSwingLibrary.PORT is None:
             RemoteSwingLibrary.PORT = self._start_port_server(int(port))
+        RemoteSwingLibrary.JAVA9_OR_NEWER = False
         if java9_or_newer == 'auto-detect':
             RemoteSwingLibrary.JAVA9_OR_NEWER = _tobool(self._java9_or_newer())
         elif _tobool(java9_or_newer):
