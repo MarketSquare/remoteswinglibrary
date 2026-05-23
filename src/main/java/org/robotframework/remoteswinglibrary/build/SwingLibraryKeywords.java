@@ -52,6 +52,7 @@ public class SwingLibraryKeywords {
             for (String keyword : keywords) {
                 writer.write("'" + keyword + "': ");
                 String docs = annotationLibrary.getKeywordDocumentation(keyword);
+                docs = docs.replace("\\", "\\\\");
                 docs = docs.replace("\n", "\\n");
                 docs = docs.replace("'", "\\'");
                 docs = docs.replace("`Regular expressions`", "`[#Regular expressions|Regular expressions]`");
