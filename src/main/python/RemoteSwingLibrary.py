@@ -281,9 +281,9 @@ class RemoteSwingLibrary(object):
         try:
             if '__pyclasspath__' in RemoteSwingLibrary.AGENT_PATH:
                 RemoteSwingLibrary.AGENT_PATH = RemoteSwingLibrary.read_python_path_env()
-            BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPATH}',
+            BuiltIn().set_global_variable(r'\${REMOTESWINGLIBRARYPATH}',
                                           self._escape_path(RemoteSwingLibrary.AGENT_PATH))
-            BuiltIn().set_global_variable('\${REMOTESWINGLIBRARYPORT}', RemoteSwingLibrary.PORT)
+            BuiltIn().set_global_variable(r'\${REMOTESWINGLIBRARYPORT}', RemoteSwingLibrary.PORT)
             self._output_dir = BuiltIn().get_variable_value('${OUTPUTDIR}')
         except RobotNotRunningError:
             pass
